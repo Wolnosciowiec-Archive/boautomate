@@ -1,14 +1,19 @@
 
-from .baseparser import BaseParser, FactsCollection
+from .base import BaseParser, FactsCollection
 from .quay import QuayParser
+from .git import InternalGitFactsParser, InternalGitCredentialsParser
+from .docker import DockerAuthorizationParser
 
 
 class PayloadParser(BaseParser):
     _parsers = [
-        QuayParser
+        QuayParser(),
+        InternalGitFactsParser(),
+        InternalGitCredentialsParser(),
+        DockerAuthorizationParser()
     ]
 
-    def can_handle(self, payload: str) -> bool:
+    def can_handle(self, payload) -> bool:
         parser: BaseParser
 
         for parser in self._parsers:
@@ -17,11 +22,22 @@ class PayloadParser(BaseParser):
 
         return False
 
-    def parse(self, payload: str) -> FactsCollection:
+    def what_is_going_on(self, payload) -> list:
+        events = []
         parser: BaseParser
 
         for parser in self._parsers:
             if parser.can_handle(payload):
-                return parser.parse(payload)
+                events = events + parser.what_is_going_on(payload)
 
-        return FactsCollection()
+        return events
+
+    def parse(self, payload) -> FactsCollection:
+        parser: BaseParser
+        facts = FactsCollection()
+
+        for parser in self._parsers:
+            if parser.can_handle(payload=payload):
+                facts.merge(parser.parse(payload=payload))
+
+        return facts

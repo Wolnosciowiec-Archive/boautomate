@@ -4,6 +4,7 @@ import tarfile
 import io
 import json
 import os
+import tornado.log
 from .persistence import Execution
 from docker import DockerClient
 from docker.models.containers import Container as DockerContainer, ExecResult
@@ -24,7 +25,7 @@ class ExecutionResult:
 class Executor(abc.ABC):
     @abc.abstractmethod
     def execute(self, execution: Execution, script: str, payload: str, communication_token: str,
-                query: dict, headers: dict) -> ExecutionResult:
+                query: dict, headers: dict, configuration_payloads: list) -> ExecutionResult:
         pass
 
 
@@ -37,7 +38,7 @@ class DockerRunExecutor(Executor):
         self.image = image
 
     def execute(self, execution: Execution, script: str, payload: str, communication_token: str,
-                query: dict, headers: dict) -> ExecutionResult:
+                query: dict, headers: dict, configuration_payloads: list) -> ExecutionResult:
 
         container: DockerContainer = self.docker.containers.run(
             image=self.image,
@@ -51,16 +52,28 @@ class DockerRunExecutor(Executor):
         container.put_archive('/', self.prepare_archive(script))
         #container.exec_run('/bin/sh -c "test -f ./requirements.txt && pip install -r ./requirements.txt"')
 
-        run: ExecResult = container.exec_run('python3 entrypoint.py', environment={
-            'PAYLOAD': payload,
+        env = {
+            'TRIGGER_PAYLOAD': payload,
+            'CONFIG_PAYLOADS': json.dumps(configuration_payloads),
             'COMMUNICATION_TOKEN': communication_token,
             'HTTP_QUERY': json.dumps(query),
             'HTTP_HEADERS': json.dumps(headers),
             'BUILD_NUMBER': execution.execution_number
-        })
+        }
+
+        self._log_exec(env)
+        run: ExecResult = container.exec_run('python3 entrypoint.py', environment=env)
         container.kill()
 
         return ExecutionResult(output=run.output.decode('utf-8'), exit_code=run.exit_code)
+
+    def _log_exec(self, env: dict):
+        env_as_str = ''
+
+        for key, value in env.items():
+            env_as_str += ' ' + key + '="' + str(value).replace('"', '\\"') + '"'
+
+        tornado.log.app_log.error(env_as_str + ' python3 entrypoint.py')
 
     def prepare_archive(self, script: str) -> bytes:
         """ Prepares the script as a TAR.GZ archive that will be natively unpacked by docker """

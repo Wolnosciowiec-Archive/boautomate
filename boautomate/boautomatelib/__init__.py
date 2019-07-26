@@ -5,6 +5,7 @@ from .persistence import ORM
 from .http import HttpServer
 from .locator import LocatorFactory
 from .repository import PipelineRepository
+import logging
 
 
 class Boautomate:
@@ -14,6 +15,12 @@ class Boautomate:
     def __init__(self, params: dict):
         self.container = Container(params)
         self.http = HttpServer(params['http_address'], params['http_port'], params['http_prefix'])
+
+        logging.basicConfig()
+        logging.getLogger().setLevel(logging.DEBUG)
+        requests_log = logging.getLogger("requests.packages.urllib3")
+        requests_log.setLevel(logging.DEBUG)
+        requests_log.propagate = True
 
     def main(self):
         self.http.run(self.container)

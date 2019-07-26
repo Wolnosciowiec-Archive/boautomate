@@ -13,7 +13,7 @@ class PipelineHandler(BaseHandler):  # pragma: no cover
     def _get_secret(self):
         return self.request.arguments.get('secret', [b''])[0].decode('utf-8')
 
-    async def get(self, pipeline_id: str):
+    async def post(self, pipeline_id: str):
         pipeline = self.container.pipeline_repository.find_by_id(pipeline_id)
 
         if not pipeline:
@@ -42,10 +42,11 @@ class PipelineHandler(BaseHandler):  # pragma: no cover
         run = self.container.executor.execute(
             execution=execution,
             script=script,
-            payload='',
-            communication_token='test-token',
+            payload=self.request.body.decode('utf-8'),
+            communication_token='test-token', #  @todo: Token generator and token management
             query=self._get_serializable_query_arguments(),
-            headers=dict(self.request.headers.get_all())
+            headers=dict(self.request.headers.get_all()),
+            configuration_payloads=pipeline.get_configuration_payloads()
         )
 
         execution.mark_as_finished(run.is_success(), run.output)

@@ -1,0 +1,8 @@
+{
+    "fact": {
+        "type": "DockerAuthorization",
+        "url": "quay.io",
+        "username": "some",
+        "password": "somepasswd"
+    }
+}

@@ -63,6 +63,12 @@ class Pipeline(Base):
     params = Column(JSON)
     executions = relationship("Execution", back_populates="pipeline")
 
+    def get_configuration_payloads(self):
+        if type(self.params) is not list:
+            return []
+
+        return self.params
+
 
 class Execution(Base):
     """ Every single execution of a Pipeline """

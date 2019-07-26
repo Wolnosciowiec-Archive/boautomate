@@ -1,10 +1,10 @@
 {
-  "name": "repository",
-  "repository": "mynamespace/repository",
-  "namespace": "mynamespace",
-  "docker_url": "quay.io/mynamespace/repository",
-  "homepage": "https://quay.io/repository/mynamespace/repository",
-  "updated_tags": [
-    "latest"
-  ]
+    "name": "repository",
+    "repository": "riotkit/test",
+    "namespace": "riotkit",
+    "docker_url": "quay.io/riotkit/test",
+    "homepage": "https://quay.io/repository/riotkit/test",
+    "updated_tags": [
+        "latest", "1.3.4", "v3.7.1.4"
+    ]
 }

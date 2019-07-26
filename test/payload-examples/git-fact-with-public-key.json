@@ -1,0 +1,8 @@
+{
+    "fact": {
+        "type": "Git+Credentials",
+        "remote": "git@github.com:riotkit-org/boautomate.git",
+        "branch": "master",
+        "public_key": "ssh-rsa ........"
+    }
+}
