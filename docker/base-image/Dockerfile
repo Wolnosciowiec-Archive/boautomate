@@ -1,6 +1,6 @@
 FROM python:3.7-alpine
 
-ADD boautomate /
+ADD boautomate /opt/
 ADD boautomate/requirements.txt /
 
 RUN apk add --update bash \

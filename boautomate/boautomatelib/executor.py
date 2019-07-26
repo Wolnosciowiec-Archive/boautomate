@@ -91,7 +91,7 @@ class DockerRunExecutor(Executor):
         tar.addfile(tarinfo=script_info, fileobj=script_file)
 
         # library
-        tar.add(self._get_boautomate_path() + '/../', 'boautomate', recursive=True)
+        tar.add(self._get_boautomate_path() + '/../', '/opt/boautomate', recursive=True)
         tar.add(self._get_boautomate_path() + '/../requirements.txt', 'requirements.txt')
 
         # write

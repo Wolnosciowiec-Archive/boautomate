@@ -10,7 +10,7 @@ import re
     If there is no "3", then push to latest and to the latest-stable.
 """
 
-sys.path.append('/boautomate')
+sys.path.append('/opt/boautomate')
 
 from boautomate.boautomatelib.localexecutor import LocalExecutor
 from boautomate.boautomatelib.localexecutor.pipeline import stage, info, fail, success
