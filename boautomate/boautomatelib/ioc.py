@@ -3,7 +3,7 @@ from .persistence import ORM
 from .locator import ScriptLocator
 from .repository import PipelineRepository, ExecutionRepository
 from .locator import LocatorFactory
-from .executor import Executor, DockerRunExecutor
+from .supervisor import Supervisor, DockerRunSupervisor
 from sqlalchemy.orm.session import Session
 
 
@@ -15,7 +15,7 @@ class Container:
     locator: ScriptLocator
     pipeline_repository: PipelineRepository
     execution_repository: ExecutionRepository
-    executor: Executor
+    supervisor: Supervisor
 
     def __init__(self, params: dict):
         self.connection = ORM(params['db_string'])
@@ -23,4 +23,4 @@ class Container:
         self.locator = LocatorFactory().create(params['storage'])
         self.pipeline_repository = PipelineRepository(self.orm)
         self.execution_repository = ExecutionRepository(self.orm)
-        self.executor = DockerRunExecutor(base_url=None, image=params['docker_image'])
+        self.supervisor = DockerRunSupervisor(base_url=None, image=params['docker_image'])

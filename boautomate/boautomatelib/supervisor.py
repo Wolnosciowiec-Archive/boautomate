@@ -22,14 +22,14 @@ class ExecutionResult:
         return self.exit_code == 0
 
 
-class Executor(abc.ABC):
+class Supervisor(abc.ABC):
     @abc.abstractmethod
     def execute(self, execution: Execution, script: str, payload: str, communication_token: str,
                 query: dict, headers: dict, configuration_payloads: list) -> ExecutionResult:
         pass
 
 
-class DockerRunExecutor(Executor):
+class DockerRunSupervisor(Supervisor):
     docker: DockerClient
     image: str
 

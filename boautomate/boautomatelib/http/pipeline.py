@@ -1,7 +1,5 @@
 
-import json
 import typing
-from ..persistence import Pipeline, Execution
 from ..exceptions import StorageException
 
 from .base import BaseHandler
@@ -39,7 +37,7 @@ class PipelineHandler(BaseHandler):  # pragma: no cover
         )
         self.container.execution_repository.flush(execution)
 
-        run = self.container.executor.execute(
+        run = self.container.supervisor.execute(
             execution=execution,
             script=script,
             payload=self.request.body.decode('utf-8'),
