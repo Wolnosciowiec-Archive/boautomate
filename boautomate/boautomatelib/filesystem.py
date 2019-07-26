@@ -4,7 +4,9 @@ import os
 from .exceptions import StorageException
 
 
-class ScriptLocator(abc.ABC):
+class Filesystem(abc.ABC):
+    """ Filesystem proxy """
+
     @abc.abstractmethod
     def retrieve_file(self, name: str) -> str:
         pass
@@ -18,7 +20,7 @@ class ScriptLocator(abc.ABC):
         pass
 
 
-class LocalFilesystemLocator(ScriptLocator):
+class LocalFilesystem(Filesystem):
     path: str
 
     def __init__(self, path: str):
@@ -45,24 +47,24 @@ class LocalFilesystemLocator(ScriptLocator):
         return content.decode('utf-8')
 
 
-class MultipleLocator(ScriptLocator):
-    locators: list
-    primary: ScriptLocator
+class MultipleFilesystemAdapter(Filesystem):
+    adapters: list
+    primary: Filesystem
 
-    def __init__(self, locators: list, primary: ScriptLocator):
-        self.locators = locators
+    def __init__(self, adapters: list, primary: Filesystem):
+        self.adapters = adapters
         self.primary = primary
 
     def retrieve_file(self, name: str) -> str:
-        for locator in self.locators:
-            if locator.file_exists(name):
-                return locator.retrieve_file(name)
+        for adapter in self.adapters:
+            if adapter.file_exists(name):
+                return adapter.retrieve_file(name)
 
         raise StorageException('File not found by any configured storage (--storage option)')
 
     def file_exists(self, name: str) -> bool:
-        for locator in self.locators:
-            if locator.file_exists(name):
+        for adapter in self.adapters:
+            if adapter.file_exists(name):
                 return True
 
         return False
@@ -71,13 +73,13 @@ class MultipleLocator(ScriptLocator):
         return self.primary.add_file(name, content)
 
 
-class LocatorFactory:
+class FSFactory:
     mapping = {
-        '': LocalFilesystemLocator,
-        'file': LocalFilesystemLocator
+        '': LocalFilesystem,
+        'file': LocalFilesystem
     }
 
-    def create(self, storagespecs: list) -> MultipleLocator:
+    def create(self, storagespecs: list) -> MultipleFilesystemAdapter:
         adapters = [
             self._create_adapter('file://' + self._get_local_scripts_location())
         ]
@@ -85,9 +87,9 @@ class LocatorFactory:
         for spec in storagespecs:
             adapters.append(self._create_adapter(spec))
 
-        return MultipleLocator(adapters, adapters[1])
+        return MultipleFilesystemAdapter(adapters, adapters[1])
 
-    def _create_adapter(self, spec: str) -> ScriptLocator:
+    def _create_adapter(self, spec: str) -> Filesystem:
         split = spec.split('://')
         mapping_type = split[0] if len(split) > 1 else 'file'
         details = split[1] if len(split) > 1 else split[0]

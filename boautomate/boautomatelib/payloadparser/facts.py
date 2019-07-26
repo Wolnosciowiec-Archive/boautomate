@@ -22,6 +22,8 @@ class FactsCollection(UserDict):
         )
 
 class GitFact(ParsedFact):
+    """ Git repository fact """
+
     remote: str
     branch: str
 
@@ -31,6 +33,8 @@ class GitFact(ParsedFact):
 
 
 class DockerRepositoryFact(ParsedFact):
+    """ Docker repository fact """
+
     url: str
     repository_name: str
     updated_tags: list
@@ -42,6 +46,8 @@ class DockerRepositoryFact(ParsedFact):
 
 
 class DockerRegistryFact(ParsedFact):
+    """ Authorization and specification of a Docker registry """
+
     url: str
     user: str
     password: str
@@ -55,6 +61,8 @@ class DockerRegistryFact(ParsedFact):
 
 
 class GitCredentialsFact(ParsedFact):
+    """ Stores credentials for a git repository """
+
     user: str
     password: str
     public_key: str

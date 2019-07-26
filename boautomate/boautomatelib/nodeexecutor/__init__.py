@@ -7,6 +7,11 @@ from ..exceptions import ScriptExpectationsNotMetException
 
 
 class NodeExecutor:
+    """
+        Base class for each script launched on a node.
+        Gives access to facts, repositories, parameters, api etc.
+    """
+
     _payloads: list
     _token: str
     _query: dict

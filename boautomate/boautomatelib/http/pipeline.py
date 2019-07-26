@@ -23,7 +23,7 @@ class PipelineHandler(BaseHandler):  # pragma: no cover
             return
 
         try:
-            script = self.container.locator.retrieve_file(pipeline.script)
+            script = self.container.filesystem.retrieve_file(pipeline.script)
 
         except StorageException:
             self.writeNotFoundError('File "' + pipeline.script + '" not found in the storage')

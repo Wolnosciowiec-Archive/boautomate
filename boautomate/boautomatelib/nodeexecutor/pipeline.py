@@ -2,6 +2,10 @@ import sys
 from datetime import datetime
 from contextlib import contextmanager
 
+"""
+    Basic pipeline helper methods
+"""
+
 
 @contextmanager
 def stage(title=''):

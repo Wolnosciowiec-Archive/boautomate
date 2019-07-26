@@ -13,6 +13,8 @@ from .lib.docker import DockerRegistryClient
 
 
 class Repository:
+    """ Context of a image repository in a docker registry """
+
     _client: DockerRegistryClient
     _repository: str
 
@@ -28,6 +30,8 @@ class Repository:
 
 
 class DockerRegistry:
+    """ Basic docker registry client """
+
     _client: DockerRegistryClient
     _repository: Repository
 
@@ -35,8 +39,7 @@ class DockerRegistry:
         self._client = DockerRegistryClient(
             host=registry_fact.url,
             username=registry_fact.user if registry_fact.user else None,
-            password=registry_fact.password if registry_fact.password else None,
-            auth_url='https://quay.io/v2/auth'
+            password=registry_fact.password if registry_fact.password else None
         )
 
         if repository_fact:
