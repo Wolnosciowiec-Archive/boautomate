@@ -6,7 +6,7 @@ from .context import ExecutionContext
 from ..exceptions import ScriptExpectationsNotMetException
 
 
-class LocalExecutor:
+class NodeExecutor:
     _payloads: list
     _token: str
     _query: dict

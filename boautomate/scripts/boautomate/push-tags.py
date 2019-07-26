@@ -12,15 +12,15 @@ import re
 
 sys.path.append('/opt/boautomate')
 
-from boautomate.boautomatelib.localexecutor import LocalExecutor
-from boautomate.boautomatelib.localexecutor.pipeline import stage, info, fail, success
+from boautomate.boautomatelib.nodeexecutor import NodeExecutor
+from boautomate.boautomatelib.nodeexecutor.pipeline import stage, info, fail, success
 from boautomate.boautomatelib.payloadparser.actions import *
 from boautomate.boautomatelib.payloadparser.facts import DockerRepositoryFact
 from boautomate.boautomatelib.tools.lib.docker import RegistryException
 from boautomate.boautomatelib.tools.lib.sort import natural_sort
 
 
-class PushTags(LocalExecutor):
+class PushTags(NodeExecutor):
     # configurable settings
     regexp: re.Pattern
     separator: str
