@@ -5,7 +5,8 @@ import threading
 import asyncio
 
 from .index import MainHandler
-from .pipeline import PipelineHandler
+from .pipeline.execution import ExecutionHandler
+from .pipeline.declaration import DeclarationHandler
 from ..ioc import Container
 
 
@@ -30,7 +31,8 @@ class HttpServer:  # pragma: no cover
         asyncio.set_event_loop(loop)
         handlers = [
             (r"" + self._path_prefix + "/", MainHandler),
-            (r"" + self._path_prefix + "/pipeline/([a-z0-9\-]+)", PipelineHandler)
+            (r"" + self._path_prefix + "/pipeline/([a-z0-9-]+)/declaration", DeclarationHandler),
+            (r"" + self._path_prefix + "/pipeline/([a-z0-9-]+)", ExecutionHandler)
         ]
 
         for handler in handlers:

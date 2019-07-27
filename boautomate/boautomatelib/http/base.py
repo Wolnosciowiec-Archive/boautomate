@@ -6,11 +6,11 @@ import json
 import tornado.log
 import tornado.web
 import traceback
-from typing import Any
+from typing import Any, Union
 from ..ioc import Container
 
 
-class BaseHandler(tornado.web.RequestHandler, ABC):
+class BaseHandler(ABC, tornado.web.RequestHandler):
     container = None  # type: Container
 
     @staticmethod
@@ -61,3 +61,10 @@ class BaseHandler(tornado.web.RequestHandler, ABC):
             output[query_param] = str_values
 
         return output
+
+    def write(self, chunk: Union[str, bytes, dict]) -> None:
+        if type(chunk) == dict:
+            self.set_header("Content-Type", "application/json; charset=UTF-8")
+            chunk = json.dumps(chunk, indent=4, sort_keys=True)
+
+        return super().write(chunk)

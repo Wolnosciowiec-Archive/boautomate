@@ -83,10 +83,18 @@ class MultipleFilesystemAdapter(Filesystem):
 
 
 class FSFactory:
+    _annotation_regexp: typing.Pattern
+
     mapping = {
         '': LocalFilesystem,
         'file': LocalFilesystem
     }
+
+    constructed: dict
+
+    def __init__(self):
+        self.constructed = {}
+        self._annotation_regexp = re.compile('@([a-zA-Z-0-9_]+)\((.*)\)')
 
     def create(self, storagespecs: list) -> MultipleFilesystemAdapter:
         adapters = [
@@ -98,15 +106,33 @@ class FSFactory:
 
         return MultipleFilesystemAdapter(adapters, adapters[1])
 
+    def get(self, adapter_id_or_spec: str) -> Filesystem:
+        """ Get already constructed storage """
+
+        if adapter_id_or_spec in self.constructed:
+            return self.constructed[adapter_id_or_spec]
+
+        return self._create_adapter(adapter_id_or_spec)
+
     def _create_adapter(self, spec: str) -> Filesystem:
+        named_adapter = self._annotation_regexp.match(spec)
+        name = spec
+
+        if named_adapter:
+            name = named_adapter.group(1)
+            spec = named_adapter.group(2)
+
         split = spec.split('://')
         mapping_type = split[0] if len(split) > 1 else 'file'
         details = split[1] if len(split) > 1 else split[0]
 
         if mapping_type not in self.mapping:
-            raise Exception('Unknown storage type "' + mapping_type + '"')
+            raise StorageException('Unknown storage type or name: "' + mapping_type + '"')
 
-        return self.mapping[mapping_type](details)
+        instance = self.mapping[mapping_type](details)
+        self.constructed[name] = instance
+
+        return instance
 
     def _get_local_scripts_location(self) -> str:
         return os.path.dirname(os.path.abspath(__file__)) + '/../scripts/'
@@ -117,11 +143,11 @@ Syntax = namedtuple('Syntax', "regexp name callback")
 
 class Templating:
     fs: Filesystem
-    fsFactory: FSFactory
+    fs_factory: FSFactory
 
-    def __init__(self, fs: Filesystem, fsFactory: FSFactory):
+    def __init__(self, fs: Filesystem, fs_factory: FSFactory):
         self.fs = fs
-        self.fsFactory = fsFactory
+        self.fs_factory = fs_factory
 
     def inject_includes(self, content: str):
         """
@@ -164,4 +190,4 @@ class Templating:
         return self.fs.retrieve_file(match.group(1))
 
     def _stored_on_filesystem(self, match: typing.Match):
-        return "!!! Not implemented yet !!!"
+        return self.fs_factory.get(match.group(1)).retrieve_file(match.group(2))

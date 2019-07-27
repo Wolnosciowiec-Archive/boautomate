@@ -85,6 +85,16 @@ class Execution(Base):
     def to_ident_string(self) -> str:
         return 'pipe_' + self.pipeline_id + '_exec_' + str(self.execution_number)
 
+    def to_summary_dict(self) -> dict:
+        return {
+            'id': self.id,
+            'execution_number': self.execution_number,
+            'invoked_by_ip': self.invoked_by_ip,
+            'payload': self.payload,
+            'log': self.log,
+            'status': self.status
+        }
+
     def mark_as_finished(self, result: bool, log: str):
         self.log = log
         self.status = Attributes.STATUS_DONE if result else Attributes.STATUS_FAILURE

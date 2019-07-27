@@ -1,36 +1,26 @@
 
 import typing
-from ..exceptions import StorageException, ConfigurationException
-from .base import BaseHandler
+from . import BasePipelineHandler
 
 
-class PipelineHandler(BaseHandler):  # pragma: no cover
+class ExecutionHandler(BasePipelineHandler):  # pragma: no cover
     callback: typing.Callable
 
-    def _get_secret(self):
-        return self.request.arguments.get('secret', [b''])[0].decode('utf-8')
+    async def get(self, pipeline_id: str):
+        pipeline = self._get_pipeline(pipeline_id)
+        last_executions = self.container.execution_repository.find_last_executions(pipeline, limit=20)
+
+        self.write({
+            'last_execution_number': self.container.execution_repository.find_last_execution_number(pipeline),
+            'executions': list(map(
+                lambda execution: execution.to_summary_dict(),
+                last_executions
+            ))
+        })
 
     async def post(self, pipeline_id: str):
-        try:
-            pipeline = self.container.pipeline_repository.find_by_id(pipeline_id)
-
-            if not pipeline:
-                self.write_not_found_error()
-                return
-
-            if pipeline.secret != self._get_secret():
-                self.write_no_access_error('Invalid secret code')
-                return
-
-            script = pipeline.retrieve_script()
-
-        except StorageException as e:
-            self.write_not_found_error('File "' + pipeline.script + '" not found in the storage. Details: ' + str(e))
-            return
-
-        except ConfigurationException as e:
-            self.write_validation_error('Configuration error: ' + str(e))
-            return
+        pipeline = self._get_pipeline(pipeline_id)
+        script = pipeline.retrieve_script()
 
         execution = self.container.execution_repository.create(
             pipeline=pipeline,

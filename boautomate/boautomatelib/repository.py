@@ -3,7 +3,7 @@ from .persistence import Pipeline, Execution
 from .filesystem import Filesystem, Templating
 from .pipelineparser import PipelineParser
 from sqlalchemy.orm.session import Session
-from sqlalchemy import func
+from sqlalchemy import func, desc
 
 
 class BaseRepository:
@@ -48,7 +48,7 @@ class ExecutionRepository(BaseRepository):
         execution.invoked_by_ip = ip_address
         execution.payload = payload
         execution.log = log
-        execution.execution_number = int(self.find_last_build_number(pipeline)) + 1
+        execution.execution_number = int(self.find_last_execution_number(pipeline)) + 1
 
         return execution
 
@@ -56,7 +56,14 @@ class ExecutionRepository(BaseRepository):
         self.orm.add(execution)
         self.orm.flush([execution])
 
-    def find_last_build_number(self, pipeline: Pipeline):
+    def find_last_executions(self, pipeline: Pipeline, limit: int):
+        return self.orm.query(Execution)\
+            .filter(Execution.pipeline_id == pipeline.id) \
+            .order_by(desc(Execution.id)) \
+            .limit(limit)\
+            .all()
+
+    def find_last_execution_number(self, pipeline: Pipeline):
         last_num = self.orm.query(func.max(Execution.execution_number)).filter(Execution.pipeline_id == pipeline.id)\
             .scalar()
 
