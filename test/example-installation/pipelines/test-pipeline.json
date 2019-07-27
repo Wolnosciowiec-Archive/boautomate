@@ -1,0 +1,7 @@
+{
+    "schema": "pipeline-v1",
+    "title": "Hello world pipeline",
+    "secret": "test",
+    "script": "@storedAtPath(scripts/hello-world.py)",
+    "configs": "@storedOnFilesystem(file://./test/example-installation).atPath(configs/hello-world.conf.json)"
+}

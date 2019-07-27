@@ -1,0 +1,7 @@
+{
+    "schema": "pipeline-v1",
+    "title": "'secret' field should be of string, not integer type",
+    "secret": 123456,
+    "script": "",
+    "configs": ""
+}

@@ -6,6 +6,7 @@ from sqlalchemy.dialects.mysql.base import MSText
 from sqlalchemy.orm.session import Session
 from sqlalchemy.schema import Column
 from sqlalchemy.engine.base import Engine
+from typing import Callable
 import uuid
 
 Base = declarative_base()
@@ -51,23 +52,21 @@ class UUID(types.TypeDecorator):
         return False
 
 
-class Pipeline(Base):
+class Pipeline:
     """ Granted access to execute a single script, with pre-defined environment variables, access code """
 
-    __tablename__ = 'pipeline'
-
-    id = Column(UUID, primary_key=True)
-    title = Column(String)
-    secret = Column(String)
-    script = Column(String)
-    params = Column(JSON)
-    executions = relationship("Execution", back_populates="pipeline")
+    id: str
+    title: str
+    secret: str
+    script: str
+    configs: list
+    retrieve_script: Callable
 
     def get_configuration_payloads(self):
-        if type(self.params) is not list:
+        if type(self.configs) is not list:
             return []
 
-        return self.params
+        return self.configs
 
 
 class Execution(Base):
@@ -80,12 +79,11 @@ class Execution(Base):
     invoked_by_ip = Column(String, nullable=False)
     payload = Column(String, nullable=False)
     log = Column(String, nullable=False)
-    pipeline_id = Column(Integer, ForeignKey('pipeline.id'))
-    pipeline = relationship("Pipeline", back_populates="executions")  # type: Pipeline
+    pipeline_id = Column(String, nullable=False)
     status = Column(String, nullable=False, default=Attributes.STATUS_IN_PROGRESS)
 
     def to_ident_string(self) -> str:
-        return 'pipe_' + self.pipeline.id + '_exec_' + str(self.execution_number)
+        return 'pipe_' + self.pipeline_id + '_exec_' + str(self.execution_number)
 
     def mark_as_finished(self, result: bool, log: str):
         self.log = log

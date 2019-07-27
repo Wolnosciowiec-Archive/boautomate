@@ -1,11 +1,18 @@
 
 import abc
 import os
+import re
+import tornado.log
+import typing
+from collections import namedtuple
 from .exceptions import StorageException
 
 
 class Filesystem(abc.ABC):
     """ Filesystem proxy """
+
+    SCRIPTS_PATH = 'scripts'
+    PIPELINES_PATH = 'pipelines'
 
     @abc.abstractmethod
     def retrieve_file(self, name: str) -> str:
@@ -37,6 +44,8 @@ class LocalFilesystem(Filesystem):
         return self.retrieve_file(self.path + '/' + name) == content
 
     def retrieve_file(self, name: str) -> str:
+        tornado.log.app_log.error('fs.retrieve_file(' + name + ')')
+
         if not self.file_exists(name):
             raise StorageException('File does not exist')
 
@@ -60,7 +69,7 @@ class MultipleFilesystemAdapter(Filesystem):
             if adapter.file_exists(name):
                 return adapter.retrieve_file(name)
 
-        raise StorageException('File not found by any configured storage (--storage option)')
+        raise StorageException('File "%s" not found by any configured storage (--storage option)' % name)
 
     def file_exists(self, name: str) -> bool:
         for adapter in self.adapters:
@@ -102,3 +111,57 @@ class FSFactory:
     def _get_local_scripts_location(self) -> str:
         return os.path.dirname(os.path.abspath(__file__)) + '/../scripts/'
 
+
+Syntax = namedtuple('Syntax', "regexp name callback")
+
+
+class Templating:
+    fs: Filesystem
+    fsFactory: FSFactory
+
+    def __init__(self, fs: Filesystem, fsFactory: FSFactory):
+        self.fs = fs
+        self.fsFactory = fsFactory
+
+    def inject_includes(self, content: str):
+        """
+            Injects file contents in place of, example:
+              - @storedAtPath(boautomate/hello-world.py)
+              - @storedAtFilesystem(file://./test/example-installation/configs/hello-world.conf.json)
+
+            Works recursively, until the syntax occurs in the content.
+        """
+
+        syntax_list = [
+            Syntax(
+                name="@storedAtPath",
+                regexp=re.compile('@storedAtPath\(([A-Za-z.0-9\-_+/,:;()%!$ ]+)\)', re.IGNORECASE),
+                callback=self._stored_at_path
+            ),
+
+            Syntax(
+                name="@storedOnFilesystem",
+                regexp=re.compile(
+                    '@storedOnFilesystem\(([A-Za-z.0-9\-_+/,:;()%!$ ]+)\).atPath\(([A-Za-z.0-9\-_+/,:;()%!$ ]+)\)',
+                    re.IGNORECASE),
+                callback=self._stored_on_filesystem
+            )
+        ]
+
+        for syntax in syntax_list:
+            while syntax.name in content:
+                match = syntax.regexp.match(content)
+
+                if not match:
+                    raise Exception('Logic error, marker "%s" found, but regexp failed to parse it' % syntax.name)
+
+                tornado.log.app_log.debug('fs.Templating injecting template ' + str(match.groups()))
+                content = content.replace(match.string, syntax.callback(match))
+
+        return content
+
+    def _stored_at_path(self, match: typing.Match):
+        return self.fs.retrieve_file(match.group(1))
+
+    def _stored_on_filesystem(self, match: typing.Match):
+        return "!!! Not implemented yet !!!"

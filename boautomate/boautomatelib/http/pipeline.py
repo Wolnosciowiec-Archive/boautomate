@@ -1,7 +1,6 @@
 
 import typing
-from ..exceptions import StorageException
-
+from ..exceptions import StorageException, ConfigurationException
 from .base import BaseHandler
 
 
@@ -12,21 +11,25 @@ class PipelineHandler(BaseHandler):  # pragma: no cover
         return self.request.arguments.get('secret', [b''])[0].decode('utf-8')
 
     async def post(self, pipeline_id: str):
-        pipeline = self.container.pipeline_repository.find_by_id(pipeline_id)
-
-        if not pipeline:
-            self.writeNotFoundError()
-            return
-
-        if pipeline.secret != self._get_secret():
-            self.writeNoAccessError('Invalid secret code')
-            return
-
         try:
-            script = self.container.filesystem.retrieve_file(pipeline.script)
+            pipeline = self.container.pipeline_repository.find_by_id(pipeline_id)
 
-        except StorageException:
-            self.writeNotFoundError('File "' + pipeline.script + '" not found in the storage')
+            if not pipeline:
+                self.write_not_found_error()
+                return
+
+            if pipeline.secret != self._get_secret():
+                self.write_no_access_error('Invalid secret code')
+                return
+
+            script = pipeline.retrieve_script()
+
+        except StorageException as e:
+            self.write_not_found_error('File "' + pipeline.script + '" not found in the storage. Details: ' + str(e))
+            return
+
+        except ConfigurationException as e:
+            self.write_validation_error('Configuration error: ' + str(e))
             return
 
         execution = self.container.execution_repository.create(

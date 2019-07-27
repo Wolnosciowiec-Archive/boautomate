@@ -14,3 +14,8 @@ class ScriptExpectationsNotMetException(ExecutorException):
 
 class NoContextException(Exception):
     pass
+
+
+class ConfigurationException(Exception):
+    pass
+
