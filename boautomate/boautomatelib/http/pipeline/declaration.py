@@ -1,6 +1,5 @@
 
 from json import loads as json_loads
-
 from . import BasePipelineHandler
 
 
