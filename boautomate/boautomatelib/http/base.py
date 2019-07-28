@@ -22,7 +22,7 @@ class BaseHandler(ABC, tornado.web.RequestHandler):
 
     def write_not_found_error(self, msg: str = 'Not found') -> None:
         tornado.log.app_log.error(msg)
-        self.write(json.dumps({'error': msg, 'type': 'no_access'}))
+        self.write(json.dumps({'error': msg, 'type': 'not_found'}))
         self.set_status(404)
 
     def write_validation_error(self, msg: str = 'Configuration error'):
@@ -31,7 +31,7 @@ class BaseHandler(ABC, tornado.web.RequestHandler):
         self.set_status(400)
 
     def write_no_access_error(self, msg: str) -> None:
-        self.write(json.dumps({'error': msg, 'type': 'not_found'}))
+        self.write(json.dumps({'error': msg, 'type': 'no_access'}))
         self.set_status(403)
 
     def write_error(self, status_code: int, **kwargs: Any) -> None:

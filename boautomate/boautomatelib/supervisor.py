@@ -4,10 +4,10 @@ import tarfile
 import io
 import json
 import os
-import tornado.log
-from .persistence import Execution
 from docker import DockerClient
 from docker.models.containers import Container as DockerContainer, ExecResult
+from .persistence import Execution
+from .logging import Logger
 
 
 class ExecutionResult:
@@ -28,6 +28,29 @@ class Supervisor(abc.ABC):
                 query: dict, headers: dict, configuration_payloads: list) -> ExecutionResult:
         pass
 
+    def prepare_environment(self, payload: str,
+                            communication_token: str,
+                            query: dict,
+                            headers: dict,
+                            configuration_payloads: list,
+                            execution: Execution):
+        return {
+            'TRIGGER_PAYLOAD': payload,
+            'CONFIG_PAYLOADS': json.dumps(configuration_payloads),
+            'COMMUNICATION_TOKEN': communication_token,
+            'HTTP_QUERY': json.dumps(query),
+            'HTTP_HEADERS': json.dumps(headers),
+            'BUILD_NUMBER': execution.execution_number
+        }
+
+    @staticmethod
+    def env_to_string(env: dict) -> str:
+        env_as_str = ''
+
+        for key, value in env.items():
+            env_as_str += ' ' + key + '="' + str(value).replace('"', '\\"') + '"'
+
+        return env_as_str.replace("\n", ' ')
 
 class DockerRunSupervisor(Supervisor):
     docker: DockerClient
@@ -40,6 +63,8 @@ class DockerRunSupervisor(Supervisor):
     def execute(self, execution: Execution, script: str, payload: str, communication_token: str,
                 query: dict, headers: dict, configuration_payloads: list) -> ExecutionResult:
 
+        Logger.debug('Spawning docker container')
+
         container: DockerContainer = self.docker.containers.run(
             image=self.image,
             remove=True,
@@ -50,33 +75,25 @@ class DockerRunSupervisor(Supervisor):
         )
 
         container.put_archive('/', self.prepare_archive(script))
-        #container.exec_run('/bin/sh -c "test -f ./requirements.txt && pip install -r ./requirements.txt"')
+        # container.exec_run('/bin/sh -c "test -f ./requirements.txt && pip install -r ./requirements.txt"')
 
-        env = {
-            'TRIGGER_PAYLOAD': payload,
-            'CONFIG_PAYLOADS': json.dumps(configuration_payloads),
-            'COMMUNICATION_TOKEN': communication_token,
-            'HTTP_QUERY': json.dumps(query),
-            'HTTP_HEADERS': json.dumps(headers),
-            'BUILD_NUMBER': execution.execution_number
-        }
+        env = self.prepare_environment(
+            payload=payload, communication_token=communication_token,
+            query=query, headers=headers, configuration_payloads=configuration_payloads,
+            execution=execution
+        )
 
-        self._log_exec(env)
+        Logger.debug('supervisor: ' + Supervisor.env_to_string(env))
+
         run: ExecResult = container.exec_run('python3 entrypoint.py', environment=env)
         container.kill()
 
         return ExecutionResult(output=run.output.decode('utf-8'), exit_code=run.exit_code)
 
-    def _log_exec(self, env: dict):
-        env_as_str = ''
-
-        for key, value in env.items():
-            env_as_str += ' ' + key + '="' + str(value).replace('"', '\\"') + '"'
-
-        tornado.log.app_log.error(env_as_str + ' python3 entrypoint.py')
-
     def prepare_archive(self, script: str) -> bytes:
         """ Prepares the script as a TAR.GZ archive that will be natively unpacked by docker """
+
+        Logger.debug('Preparing a tar.gz to send to docker daemon')
 
         tar_in_bytes = io.BytesIO()
         tar = tarfile.open(fileobj=tar_in_bytes, mode='w:gz')

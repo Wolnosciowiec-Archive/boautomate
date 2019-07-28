@@ -7,6 +7,7 @@ import asyncio
 from .index import MainHandler
 from .pipeline.execution import ExecutionHandler
 from .pipeline.declaration import DeclarationHandler
+from .pipeline.env import EnvHandler
 from ..ioc import Container
 
 
@@ -32,6 +33,7 @@ class HttpServer:  # pragma: no cover
         handlers = [
             (r"" + self._path_prefix + "/", MainHandler),
             (r"" + self._path_prefix + "/pipeline/([a-z0-9-]+)/declaration", DeclarationHandler),
+            (r"" + self._path_prefix + "/pipeline/([a-z0-9-]+)/environment", EnvHandler),
             (r"" + self._path_prefix + "/pipeline/([a-z0-9-]+)", ExecutionHandler)
         ]
 

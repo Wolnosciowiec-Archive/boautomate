@@ -16,6 +16,10 @@ class ExecutionHandler(BasePipelineHandler):  # pragma: no cover
         """
 
         pipeline = self._get_pipeline(pipeline_id)
+
+        if not pipeline:
+            return
+
         last_executions = self.container.execution_repository.find_last_executions(pipeline, limit=20)
 
         self.write({
@@ -37,6 +41,10 @@ class ExecutionHandler(BasePipelineHandler):  # pragma: no cover
 
     def _post(self, pipeline_id: str):
         pipeline = self._get_pipeline(pipeline_id)
+
+        if not pipeline:
+            return
+
         script = pipeline.retrieve_script()
 
         execution = self.container.execution_repository.create(

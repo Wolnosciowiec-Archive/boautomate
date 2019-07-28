@@ -4,6 +4,7 @@ from .filesystem import Filesystem, FSFactory, Templating
 from .repository import PipelineRepository, ExecutionRepository
 from .supervisor import Supervisor, DockerRunSupervisor
 from sqlalchemy.orm.session import Session
+from .logging import Logger
 
 
 class Container:
@@ -23,6 +24,8 @@ class Container:
     supervisor: Supervisor
 
     def __init__(self, params: dict):
+        Logger.debug('Initializing the IoC container')
+
         self.connection = ORM(params['db_string'])
         self.orm = self.connection.session
         self.fs_factory = FSFactory()

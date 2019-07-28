@@ -25,7 +25,8 @@ class BasePipelineHandler(BaseHandler):
             return pipeline
 
         except StorageException as e:
-            self.write_not_found_error('"' + pipeline_id + '" not found on the storage. Details: ' + str(e))
+            self.write_not_found_error('"' + pipeline_id + '" not found on the storage, or one of its files. ' +
+                                       'Details: ' + str(e))
             return
 
         except ConfigurationException as e:

@@ -5,7 +5,7 @@ from .persistence import ORM
 from .http import HttpServer
 from .filesystem import FSFactory
 from .repository import PipelineRepository
-import logging
+from .logging import setup_logger, Logger
 
 
 class Boautomate:
@@ -13,14 +13,9 @@ class Boautomate:
     http: HttpServer
 
     def __init__(self, params: dict):
+        setup_logger('./boautomate.log', True)
         self.container = Container(params)
         self.http = HttpServer(params['http_address'], params['http_port'], params['http_prefix'])
-
-        logging.basicConfig()
-        logging.getLogger().setLevel(logging.DEBUG)
-        requests_log = logging.getLogger("requests.packages.urllib3")
-        requests_log.setLevel(logging.DEBUG)
-        requests_log.propagate = True
 
     def main(self):
         self.http.run(self.container)

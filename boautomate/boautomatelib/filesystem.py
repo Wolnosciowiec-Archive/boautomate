@@ -2,10 +2,10 @@
 import abc
 import os
 import re
-import tornado.log
 import typing
 from collections import namedtuple
 from .exceptions import StorageException
+from .logging import Logger
 
 
 class Filesystem(abc.ABC):
@@ -44,10 +44,11 @@ class LocalFilesystem(Filesystem):
         return self.retrieve_file(self.path + '/' + name) == content
 
     def retrieve_file(self, name: str) -> str:
-        tornado.log.app_log.error('fs.retrieve_file(' + name + ')')
+        Logger.debug('fs.retrieve_file(' + name + ')')
 
         if not self.file_exists(name):
-            raise StorageException('File does not exist')
+            raise StorageException(('File "%s" does not exist. ' +
+                                   'Check if it exists, and if a valid filesystem was selected') % name)
 
         f = open(self.path + '/' + name, 'rb')
         content = f.read()
@@ -68,6 +69,8 @@ class MultipleFilesystemAdapter(Filesystem):
         for adapter in self.adapters:
             if adapter.file_exists(name):
                 return adapter.retrieve_file(name)
+
+            Logger.debug('"%s" file does not exist in fs=%s' % (name, str(adapter)))
 
         raise StorageException('File "%s" not found by any configured storage (--storage option)' % name)
 
@@ -98,7 +101,7 @@ class FSFactory:
 
     def create(self, storagespecs: list) -> MultipleFilesystemAdapter:
         adapters = [
-            self._create_adapter('file://' + self._get_local_scripts_location())
+            self._create_adapter('file://' + self._get_local_boautomate_location())
         ]
 
         for spec in storagespecs:
@@ -110,17 +113,21 @@ class FSFactory:
         """ Get already constructed storage """
 
         if adapter_id_or_spec in self.constructed:
+            Logger.debug('fs.get returned existing instance of fs for "%s"' % adapter_id_or_spec)
             return self.constructed[adapter_id_or_spec]
 
         return self._create_adapter(adapter_id_or_spec)
 
     def _create_adapter(self, spec: str) -> Filesystem:
+        Logger.info('FSFactory is creating adapter from spec=%s' % spec)
+
         named_adapter = self._annotation_regexp.match(spec)
         name = spec
 
         if named_adapter:
             name = named_adapter.group(1)
             spec = named_adapter.group(2)
+            # @todo: Add flags support @example(spec).flags(something)
 
         split = spec.split('://')
         mapping_type = split[0] if len(split) > 1 else 'file'
@@ -132,10 +139,12 @@ class FSFactory:
         instance = self.mapping[mapping_type](details)
         self.constructed[name] = instance
 
+        Logger.debug('Initialized filesystem under name "%s"' % name)
+
         return instance
 
-    def _get_local_scripts_location(self) -> str:
-        return os.path.dirname(os.path.abspath(__file__)) + '/../scripts/'
+    def _get_local_boautomate_location(self) -> str:
+        return os.path.dirname(os.path.abspath(__file__)) + '/../'
 
 
 Syntax = namedtuple('Syntax', "regexp name callback")
@@ -176,12 +185,13 @@ class Templating:
 
         for syntax in syntax_list:
             while syntax.name in content:
+                Logger.debug('Templating.inject_includes() is matching %s' % syntax.name)
                 match = syntax.regexp.match(content)
 
                 if not match:
                     raise Exception('Logic error, marker "%s" found, but regexp failed to parse it' % syntax.name)
 
-                tornado.log.app_log.debug('fs.Templating injecting template ' + str(match.groups()))
+                Logger.debug('fs.Templating injecting template ' + str(match.groups()))
                 content = content.replace(match.string, syntax.callback(match))
 
         return content

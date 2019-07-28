@@ -8,7 +8,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.engine.base import Engine
 from typing import Callable
 import uuid
-
+from .logging import Logger
 Base = declarative_base()
 
 
@@ -22,6 +22,7 @@ class ORM:
     session: Session  # type: Session
 
     def __init__(self, db_string: str):
+        Logger.info('ORM is initializing')
         self.engine = create_engine(db_string, echo=True)
         self.session = sessionmaker(bind=self.engine, autoflush=False, autocommit=True)()
         Base.metadata.create_all(self.engine)
