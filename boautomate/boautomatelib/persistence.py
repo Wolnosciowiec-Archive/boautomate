@@ -1,10 +1,9 @@
 
-from sqlalchemy import create_engine, Column, Integer, String, JSON, types, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, types, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.dialects.mysql.base import MSText
 from sqlalchemy.orm.session import Session
-from sqlalchemy.schema import Column
 from sqlalchemy.engine.base import Engine
 from typing import Callable
 import uuid
@@ -99,3 +98,11 @@ class Execution(Base):
     def mark_as_finished(self, result: bool, log: str):
         self.log = log
         self.status = Attributes.STATUS_DONE if result else Attributes.STATUS_FAILURE
+
+
+class ScriptToken(Base):
+    __tablename__ = 'script_token'
+
+    id = Column(UUID, primary_key=True)
+    pipeline_id = Column(String, nullable=False)
+    expires_at = Column(DateTime, nullable=False)

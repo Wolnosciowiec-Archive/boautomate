@@ -13,7 +13,7 @@ class Boautomate:
     http: HttpServer
 
     def __init__(self, params: dict):
-        setup_logger('./boautomate.log', True)
+        setup_logger(params['log_path'], params['log_level'])
         self.container = Container(params)
         self.http = HttpServer(params['http_address'], params['http_port'], params['http_prefix'])
 

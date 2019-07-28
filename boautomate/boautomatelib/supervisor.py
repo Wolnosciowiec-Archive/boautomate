@@ -52,6 +52,7 @@ class Supervisor(abc.ABC):
 
         return env_as_str.replace("\n", ' ')
 
+
 class DockerRunSupervisor(Supervisor):
     docker: DockerClient
     image: str

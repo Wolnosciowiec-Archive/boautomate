@@ -13,6 +13,14 @@ MAPPING = {
     'CRITICAL': 41
 }
 
+PARAM_MAPPING = {
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+    'critical': logging.CRITICAL
+}
+
 PREFIX = '\033['
 SUFFIX = '\033[0m'
 
@@ -33,7 +41,7 @@ class ColoredFormatter(logging.Formatter):
         return logging.Formatter.format(self, colored_record)
 
 
-def setup_logger(path: str, is_debug: bool):
+def setup_logger(path: str, level: str):
     """ Creates a logger instance with proper handlers configured """
 
     logger = logging.getLogger('boautomate')
@@ -41,19 +49,15 @@ def setup_logger(path: str, is_debug: bool):
     formatter = ColoredFormatter("[%(asctime)s][%(name)s][%(levelname)s]: %(message)s")
 
     logging_handler = logging.StreamHandler(sys.stdout)
-    logging_handler.setLevel(logging.INFO)
     logging_handler.setFormatter(formatter)
 
     log_file_handler = logging.FileHandler(path, 'a+')
     log_file_handler.setFormatter(formatter)
-    log_file_handler.setLevel(logging.INFO)
 
-    if is_debug:
-        logger.setLevel(logging.DEBUG)
-        logging_handler.setLevel(logging.DEBUG)
-        log_file_handler.setLevel(logging.DEBUG)
-    else:
-        logging_handler.setLevel(logging.ERROR)
+    level = PARAM_MAPPING[level] if level in PARAM_MAPPING else PARAM_MAPPING['info']
+    logger.setLevel(level)
+    logging_handler.setLevel(level)
+    log_file_handler.setLevel(level)
 
     logger.addHandler(logging_handler)
     logger.addHandler(log_file_handler)

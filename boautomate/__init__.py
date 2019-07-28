@@ -18,6 +18,8 @@ def main():
     parser.add_argument('--http-port', help='HTTP listen port', default=8080)
     parser.add_argument('--http-prefix', help='HTTP path prefix', default='')
     parser.add_argument('--admin-token', help='Management token', default='')
+    parser.add_argument('--log-path', help='Path to log file', default='./boautomate.log')
+    parser.add_argument('--log-level', help='Logging level (debug, info, warning, error)', default='info')
     parser.add_argument('--docker-image', help='Docker image for the executor', default='quay.io/riotkit/boautomate-executor-base-img:latest')
     parser.add_argument('--storage',
                         help='Path to scripts or a storage. eg. filerepository://api.example.org@SOME-TOKEN, ' +

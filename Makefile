@@ -7,4 +7,4 @@ build_base_image:
 ## Run test instance for API testing
 run_test:
 	touch db.sqlite3
-	${SUDO} python3 ./boautomate/__init__.py --db-string=sqlite:///db.sqlite3 --storage "@example(file://$$(pwd)/test/example-installation)"
+	${SUDO} python3 ./boautomate/__init__.py --db-string=sqlite:///db.sqlite3 --storage "@example(file://$$(pwd)/test/example-installation)" --log-level=debug --log-path=boautomate-test.log
