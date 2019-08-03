@@ -19,7 +19,6 @@ It is not a fully featured CI like Jenkins, but a very lightweight CI-like serve
 - Python 3.7+ (with all libraries listed in `requirements.txt`)
 - Linux
 - Docker (optionally for docker support and execution in docker containers)
--
 
 **Why?**
 
