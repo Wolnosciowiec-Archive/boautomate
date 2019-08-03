@@ -1,17 +1,51 @@
 
-from abc import ABC
-from typing import Optional, Awaitable
-
 import json
-import tornado.log
 import tornado.web
 import traceback
-from typing import Any, Union
+from abc import ABC
+from typing import Optional, Awaitable, Any, Union
+from jsonschema.exceptions import ValidationError
+from tornado_swagger.model import register_swagger_model
+from ..exceptions import HttpError
+from ..logging import Logger
 from ..ioc import Container
+
+
+@register_swagger_model
+class RequestError:
+    """
+    ---
+    type: object
+    description: Request error (validation, resource not found, no permissions)
+    properties:
+        error:
+            type: string
+        type:
+            type: string
+    """
+
+
+@register_swagger_model
+class ServerError:
+    """
+    ---
+    type: object
+    description: Server error
+    properties:
+        details:
+            type: array
+            items:
+                type: string
+        status:
+            type: integer
+        type:
+            type: string
+    """
 
 
 class BaseHandler(ABC, tornado.web.RequestHandler):
     container = None  # type: Container
+    _error_already_written_as_json = False
 
     @staticmethod
     def inject_container(container: Container):
@@ -20,33 +54,41 @@ class BaseHandler(ABC, tornado.web.RequestHandler):
     def data_received(self, chunk: bytes) -> Optional[Awaitable[None]]:
         pass
 
-    def write_not_found_error(self, msg: str = 'Not found') -> None:
-        tornado.log.app_log.error(msg)
-        self.write(json.dumps({'error': msg, 'type': 'not_found'}))
-        self.set_status(404)
+    def raise_not_found_error(self, msg: str = 'Not found') -> None:
+        Logger.error(msg)
+        raise HttpError(404, json.dumps({'error': msg, 'type': 'not_found'}))
 
-    def write_validation_error(self, msg: str = 'Configuration error'):
-        tornado.log.app_log.error(msg)
-        self.write(json.dumps({'error': msg, 'type': 'validation_error'}))
-        self.set_status(400)
+    def raise_validation_error(self, msg: str = 'Configuration error'):
+        Logger.error(msg)
+        raise HttpError(400, json.dumps({'error': msg, 'type': 'validation_error'}))
 
     def write_no_access_error(self, msg: str) -> None:
-        self.write(json.dumps({'error': msg, 'type': 'no_access'}))
-        self.set_status(403)
+        raise HttpError(403, json.dumps({'error': msg, 'type': 'no_access'}))
 
     def write_error(self, status_code: int, **kwargs: Any) -> None:
         details = []
 
         if "exc_info" in kwargs:
+            try:
+                raise
+            except ValidationError as e:
+                self.raise_validation_error(str(e.message))
+                return
+            except HttpError as e:
+                self.set_status(e.http_code)
+                self.finish(str(e))
+                return
+            except:
+                pass
+
             details = traceback.format_exception(*kwargs["exc_info"])
 
         self.set_status(status_code)
         self.finish({
-            'error': "Server error",
             'status': status_code,
             'type': 'server_error',
-            'details': details}
-        )
+            'details': details
+        })
 
 
     def _get_serializable_query_arguments(self):

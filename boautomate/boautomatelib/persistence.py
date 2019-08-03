@@ -1,5 +1,5 @@
 
-from sqlalchemy import create_engine, Column, Integer, String, types, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, types, DateTime, Boolean, ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.dialects.mysql.base import MSText
@@ -100,9 +100,47 @@ class Execution(Base):
         self.status = Attributes.STATUS_DONE if result else Attributes.STATUS_FAILURE
 
 
-class ScriptToken(Base):
-    __tablename__ = 'script_token'
+class Token(Base):
+    """
+        Access tokens - assigned to a pipeline and execution, or unassigned
+        Never deleted, only deactivated.
+    """
+
+    __tablename__ = 'token'
 
     id = Column(UUID, primary_key=True)
+    pipeline_id = Column(String, nullable=True)
+    expires_at = Column(DateTime, nullable=False)
+    active = Column(Boolean, nullable=False, default=True)
+    execution_id = Column(Integer, ForeignKey('execution.id'))
+    execution = relationship("Execution")  # type: Execution
+
+
+class Lock(Base):
+    """
+        Defines a transactional or time-based lock
+        for given resource. With a lock we can mark that
+        eg. "we pushed 1.0.5 tag at git, so we don't want to be notified that it was pushed, so we can skip event if lock exists"
+
+        Locks are deleted from database when not needed anymore and when expired.
+    """
+
+    __tablename__ = 'lock'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', 'pipeline_id'),
+        {},
+    )
+
+    id = Column(String, nullable=False)             # lock name, custom
     pipeline_id = Column(String, nullable=False)
     expires_at = Column(DateTime, nullable=False)
+    payload_regexp = Column(String, nullable=True)  # optional regexp to filter payload by on Supervisor level
+
+    def to_dict(self) -> dict:
+        return {
+            'id': self.id,
+            'pipeline_id': self.pipeline_id,
+            'expires_at': str(self.expires_at),
+            'payload_regexp': self.payload_regexp
+        }
+

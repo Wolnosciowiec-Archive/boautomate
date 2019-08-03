@@ -3,6 +3,8 @@ import os
 import json
 
 from .context import ExecutionContext
+from .api import Api
+from .api.locks import Locks
 from ..exceptions import ScriptExpectationsNotMetException
 
 
@@ -17,6 +19,8 @@ class NodeExecutor:
     _query: dict
     _headers: dict
     _ctx: ExecutionContext
+    _api: Api
+    locks: Locks
 
     def __init__(self):
         self._payload = os.getenv('TRIGGER_PAYLOAD', '{}')
@@ -25,6 +29,7 @@ class NodeExecutor:
         self._query = json.loads(os.getenv('HTTP_QUERY', '{}'))
         self._headers = json.loads(os.getenv('HTTP_HEADERS', '{}'))
         self._populate_context()
+        self._create_api_client()
 
     def get_query_argument(self, arg: str, default = None):
         return self._query.get(arg) if arg in self._query else default
@@ -32,8 +37,15 @@ class NodeExecutor:
     def get_header(self, arg: str, default = None):
         return self._headers.get(arg) if arg in self._headers else default
 
-    def get_build_number(self):
-        return os.getenv('BUILD_NUMBER', 1)
+    def get_build_number(self) -> int:
+        return int(os.getenv('BUILD_NUMBER', 1))
+
+    def get_pipeline_id(self) -> str:
+        return os.getenv('PIPELINE_ID')
+
+    def _create_api_client(self):
+        self._api = Api(os.getenv('MASTER_BASE_URL', ''), self._token)
+        self.locks = Locks(self._api, self.get_pipeline_id())
 
     def _populate_context(self):
         self._ctx = ExecutionContext(self._payload, self._config)

@@ -14,6 +14,7 @@ except ImportError:
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--node-master-url', help='Complete URL to the application for working nodes', required=True)
     parser.add_argument('--http-address', help='HTTP listen address', default='0.0.0.0')
     parser.add_argument('--http-port', help='HTTP listen port', default=8080)
     parser.add_argument('--http-prefix', help='HTTP path prefix', default='')

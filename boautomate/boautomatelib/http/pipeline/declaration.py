@@ -13,6 +13,8 @@ class DeclarationHandler(BasePipelineHandler):  # pragma: no cover
         if not pipeline:
             return
 
+        self.assert_has_access(pipeline)
+
         self.write({
             'id': pipeline.id,
             'script': pipeline.retrieve_script(),

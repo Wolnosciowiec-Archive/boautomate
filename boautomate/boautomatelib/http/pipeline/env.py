@@ -12,6 +12,8 @@ class EnvHandler(BasePipelineHandler):  # pragma: no cover
         if not pipeline:
             return
 
+        self.assert_has_access(pipeline)
+
         self.write(self.container.supervisor.env_to_string(
             self.container.supervisor.prepare_environment(
                 execution=self.container.execution_repository.create(pipeline, '0.0.0.0', '', ''),

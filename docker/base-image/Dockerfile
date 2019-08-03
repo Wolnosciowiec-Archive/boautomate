@@ -1,7 +1,7 @@
 FROM python:3.7-alpine
 
 ADD boautomate /opt/
-ADD boautomate/requirements.txt /
+ADD requirements.txt /
 
 RUN apk add --update bash \
     && addgroup -g 1000 boautomate \

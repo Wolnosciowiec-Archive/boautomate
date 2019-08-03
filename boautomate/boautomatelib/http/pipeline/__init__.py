@@ -2,6 +2,7 @@
 from typing import Union
 
 from ...persistence import Pipeline
+from ...exceptions import EntityNotFound
 from ...exceptions import StorageException, ConfigurationException
 from ..base import BaseHandler
 
@@ -15,20 +16,29 @@ class BasePipelineHandler(BaseHandler):
             pipeline = self.container.pipeline_repository.find_by_id(pipeline_id)
 
             if not pipeline:
-                self.write_not_found_error()
-                return
-
-            if pipeline.secret != self._get_secret():
-                self.write_no_access_error('Invalid secret code')
-                return
+                self.raise_not_found_error()
+                raise
 
             return pipeline
 
         except StorageException as e:
-            self.write_not_found_error('"' + pipeline_id + '" not found on the storage, or one of its files. ' +
+            self.raise_not_found_error('"' + pipeline_id + '" not found on the storage, or one of its files. ' +
                                        'Details: ' + str(e))
-            return
 
         except ConfigurationException as e:
-            self.write_validation_error('Configuration error: ' + str(e))
-            return
+            self.raise_validation_error('Configuration error: ' + str(e))
+
+    def assert_has_access(self, pipeline: Pipeline):
+        if pipeline.secret != self._get_secret():
+            self.write_no_access_error('Invalid secret code')
+            raise Exception('Invalid secret code')
+
+    def assert_has_access_to_internal_api(self, pipeline_id: str):
+        try:
+            token = self.container.token_manager.get(str(self.request.headers.get('Token')))
+        except EntityNotFound:
+            token = None
+
+        if not token or token.pipeline_id != pipeline_id:
+            self.write_no_access_error('Token is missing or current token is not in scope of requested pipeline')
+            raise Exception('Token not found')

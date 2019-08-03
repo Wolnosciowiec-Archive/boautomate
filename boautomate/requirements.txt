@@ -1,4 +1,0 @@
-sqlalchemy==1.3
-tornado>=6<7
-docker>=4
-docker-registry-client>=0.5.2

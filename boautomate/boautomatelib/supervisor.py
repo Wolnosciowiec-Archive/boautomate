@@ -23,6 +23,11 @@ class ExecutionResult:
 
 
 class Supervisor(abc.ABC):
+    _master_url: str
+
+    def __init__(self, master_url: str):
+        self._master_url = master_url
+
     @abc.abstractmethod
     def execute(self, execution: Execution, script: str, payload: str, communication_token: str,
                 query: dict, headers: dict, configuration_payloads: list) -> ExecutionResult:
@@ -40,7 +45,9 @@ class Supervisor(abc.ABC):
             'COMMUNICATION_TOKEN': communication_token,
             'HTTP_QUERY': json.dumps(query),
             'HTTP_HEADERS': json.dumps(headers),
-            'BUILD_NUMBER': execution.execution_number
+            'BUILD_NUMBER': execution.execution_number,
+            'MASTER_BASE_URL': self._master_url,
+            'PIPELINE_ID': execution.pipeline_id
         }
 
     @staticmethod
@@ -57,7 +64,8 @@ class DockerRunSupervisor(Supervisor):
     docker: DockerClient
     image: str
 
-    def __init__(self, base_url = None, image: str = 'python:3.7-alpine'):
+    def __init__(self, master_url: str, base_url=None, image: str = 'python:3.7-alpine'):
+        super().__init__(master_url)
         self.docker = DockerClient(base_url=base_url)
         self.image = image
 
