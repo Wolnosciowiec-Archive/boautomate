@@ -10,9 +10,6 @@ class DeclarationHandler(BasePipelineHandler):  # pragma: no cover
 
     async def get(self, pipeline_id: str):
         pipeline = self._get_pipeline(pipeline_id)
-        if not pipeline:
-            return
-
         self.assert_has_access(pipeline)
 
         self.write({

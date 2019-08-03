@@ -17,9 +17,6 @@ class ExecutionHandler(BasePipelineHandler):  # pragma: no cover
 
         pipeline = self._get_pipeline(pipeline_id)
 
-        if not pipeline:
-            return
-
         self.assert_has_access(pipeline)
         last_executions = self.container.execution_repository.find_last_executions(pipeline, limit=20)
 
@@ -82,9 +79,6 @@ class ExecutionHandler(BasePipelineHandler):  # pragma: no cover
 
     def _post(self, pipeline_id: str):
         pipeline = self._get_pipeline(pipeline_id)
-
-        if not pipeline:
-            return
 
         self.assert_has_access(pipeline)
         script = pipeline.retrieve_script()

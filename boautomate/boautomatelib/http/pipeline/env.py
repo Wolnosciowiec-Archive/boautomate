@@ -9,9 +9,6 @@ class EnvHandler(BasePipelineHandler):  # pragma: no cover
 
     async def post(self, pipeline_id: str):
         pipeline = self._get_pipeline(pipeline_id)
-        if not pipeline:
-            return
-
         self.assert_has_access(pipeline)
 
         self.write(self.container.supervisor.env_to_string(
