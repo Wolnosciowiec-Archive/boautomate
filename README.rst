@@ -41,4 +41,8 @@ When a new application version comes, then open a "VERSIONS.rst" on "master" git
 
 .. code:: bash
 
-    make
+    # in first console
+    make run_test_server
+
+    # in second console
+    make run_test_pipeline
