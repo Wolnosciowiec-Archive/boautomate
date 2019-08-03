@@ -15,7 +15,7 @@ from datetime import timedelta
 
 class LocksExample(NodeExecutor):
     def main(self):
-       with self.locks.lock('locks-example', mode=self.locks.MODE_EXIT, expires_in=timedelta(hours=2)):
+       with self.locks.lock('locks-example', mode=self.locks.MODE_WAIT_UNTIL_RELEASED, expires_in=timedelta(hours=2)):
            info('Hello, the pipeline is now locked')
            sleep(5)
 
