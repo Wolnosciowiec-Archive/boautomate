@@ -3,7 +3,6 @@
 from .ioc import Container
 from .persistence import ORM
 from .http import HttpServer
-from .filesystem import FSFactory
 from .repository import PipelineRepository
 from .logging import setup_logger, Logger
 

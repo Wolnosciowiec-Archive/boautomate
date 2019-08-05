@@ -1,6 +1,8 @@
 
 from .persistence import ORM
-from .filesystem import Filesystem, FSFactory, Templating
+from .filesystem import Filesystem
+from .filesystem.factory import FSFactory
+from .filesystem.templating import Templating
 from .repository import PipelineRepository, ExecutionRepository, TokenRepository, LocksRepository
 from .supervisor import Supervisor, DockerRunSupervisor
 from .tokenmanager import TokenManager

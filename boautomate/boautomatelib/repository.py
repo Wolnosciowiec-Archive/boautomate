@@ -1,6 +1,7 @@
 
 from .persistence import Pipeline, Execution, Token, Lock
-from .filesystem import Filesystem, Templating
+from .filesystem import Filesystem
+from .filesystem.templating import Templating
 from .pipelineparser import PipelineParser
 from .exceptions import EntityNotFound
 from sqlalchemy.orm.session import Session
