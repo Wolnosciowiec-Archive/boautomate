@@ -3,5 +3,6 @@
     "title": "Hello world pipeline",
     "secret": "test",
     "script": "@storedAtPath(scripts/locks-example.py)",
-    "configs": "@storedOnFilesystem(file://./test/example-installation).atPath(configs/hello-world.conf.json)"
+    "configs": "@storedOnFilesystem(boautomate).atPath(configs/hello-world.conf.json)",
+    "params": {}
 }

@@ -18,6 +18,7 @@ class EnvHandler(BasePipelineHandler):  # pragma: no cover
                 communication_token='test-token',  # @todo: Token generator and token management
                 query=self._get_serializable_query_arguments(),
                 headers=dict(self.request.headers.get_all()),
-                configuration_payloads=pipeline.get_configuration_payloads()
+                configuration_payloads=pipeline.get_configuration_payloads(),
+                params=pipeline.params
             )
         ))

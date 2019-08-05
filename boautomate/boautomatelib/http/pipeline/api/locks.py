@@ -31,7 +31,7 @@ class LocksHandler(BasePipelineHandler):
                 return self.container.lock_repository.create(lock_id, pipeline_id)
 
     def _parse(self, payload: str) -> Payload:
-        Schema.validate_payload(payload, 'pipeline/api/lock')
+        Schema.validate_json_payload(payload, 'pipeline/api/lock')
         parsed = Schema.parse_json(payload)
 
         expires_at = date_parse(parsed.get('expires_at')) if parsed.get('expires_at') \

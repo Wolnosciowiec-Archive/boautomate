@@ -4,6 +4,7 @@ from .filesystem import Filesystem, FSFactory, Templating
 from .repository import PipelineRepository, ExecutionRepository, TokenRepository, LocksRepository
 from .supervisor import Supervisor, DockerRunSupervisor
 from .tokenmanager import TokenManager
+from .resolver import Resolver
 from sqlalchemy.orm.session import Session
 from .logging import Logger
 
@@ -27,9 +28,14 @@ class Container:
     token_manager: TokenManager
     supervisor: Supervisor
     self_url: str
+    local_path: str
+    resolver: Resolver
 
     def __init__(self, params: dict):
         Logger.debug('Initializing the IoC container')
+
+        self.resolver = Resolver(params)
+        self.local_path = params['local_path']
 
         # http
         self.self_url = params['node_master_url']
@@ -43,8 +49,8 @@ class Container:
         self.token_manager = TokenManager(repository=self.token_repository)
 
         # filesystem related
-        self.fs_factory = FSFactory()
-        self.filesystem = self.fs_factory.create(params['storage'])
+        self.fs_factory = FSFactory(self.resolver.get('storage'))
+        self.filesystem = self.fs_factory.create()
         self.fs_tpl = Templating(self.filesystem, self.fs_factory)
         self.pipeline_repository = PipelineRepository(self.filesystem, self.fs_tpl)
 

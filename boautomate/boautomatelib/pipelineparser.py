@@ -24,6 +24,7 @@ class PipelineParser:
         pipe.secret = parsed['secret']
         pipe.configs = parsed['configs']
         pipe.title = parsed['title']
+        pipe.params = parsed['params']
 
         return pipe
 

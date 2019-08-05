@@ -14,21 +14,38 @@ except ImportError:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--node-master-url', help='Complete URL to the application for working nodes', required=True)
-    parser.add_argument('--http-address', help='HTTP listen address', default='0.0.0.0')
-    parser.add_argument('--http-port', help='HTTP listen port', default=8080)
-    parser.add_argument('--http-prefix', help='HTTP path prefix', default='')
-    parser.add_argument('--admin-token', help='Management token', default='')
-    parser.add_argument('--log-path', help='Path to log file', default='./boautomate.log')
-    parser.add_argument('--log-level', help='Logging level (debug, info, warning, error)', default='info')
-    parser.add_argument('--docker-image', help='Docker image for the executor', default='quay.io/riotkit/boautomate-executor-base-img:latest')
-    parser.add_argument('--storage',
-                        help='Path to scripts or a storage. eg. filerepository://api.example.org@SOME-TOKEN, ' +
-                             'file:///opt/some/directory',
-                        nargs='+',
+    parser.add_argument('--node-master-url',
+                        help='Complete URL to the application for working nodes',
                         required=True)
-
-    parser.add_argument('--db-string', help='Database string (SQLAlchemy compatible)',
+    parser.add_argument('--http-address',
+                        help='HTTP listen address',
+                        default='0.0.0.0')
+    parser.add_argument('--http-port',
+                        help='HTTP listen port',
+                        default=8080)
+    parser.add_argument('--http-prefix',
+                        help='HTTP path prefix',
+                        default='')
+    parser.add_argument('--admin-token',
+                        help='Management token',
+                        default='')
+    parser.add_argument('--log-path',
+                        help='Path to log file',
+                        default='./boautomate.log')
+    parser.add_argument('--log-level',
+                        help='Logging level (debug, info, warning, error)',
+                        default='info')
+    parser.add_argument('--docker-image',
+                        help='Docker image for the executor',
+                        default='quay.io/riotkit/boautomate-executor-base-img:latest')
+    parser.add_argument('--local-path',
+                        help='Local Boautomate directory to ex. store cache, git repositories',
+                        default='/var/lib/boautomate')
+    parser.add_argument('--storage',
+                        help='Path to storage configuration file',
+                        default='%local_path%/storage.yaml')
+    parser.add_argument('--db-string',
+                        help='Database string (SQLAlchemy compatible)',
                         default='sqlite:///var/lib/boautomate.sqlite3')
 
     parser.description = 'RiotKit\'s BoAutomate - A boa snake eating webhooks and processing python scripts'

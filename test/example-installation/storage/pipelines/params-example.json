@@ -1,0 +1,10 @@
+{
+    "schema": "pipeline-v1",
+    "title": "Params example pipeline",
+    "secret": "test",
+    "script": "@storedAtPath(scripts/params-example.py)",
+    "configs": "",
+    "params": {
+        "message": "Do you know, that you don't need a boss, but the boss need you?"
+    }
+}

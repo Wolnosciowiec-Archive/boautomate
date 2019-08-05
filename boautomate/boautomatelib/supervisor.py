@@ -30,7 +30,7 @@ class Supervisor(abc.ABC):
 
     @abc.abstractmethod
     def execute(self, execution: Execution, script: str, payload: str, communication_token: str,
-                query: dict, headers: dict, configuration_payloads: list) -> ExecutionResult:
+                query: dict, headers: dict, configuration_payloads: list, params: dict) -> ExecutionResult:
         pass
 
     def prepare_environment(self, payload: str,
@@ -38,12 +38,14 @@ class Supervisor(abc.ABC):
                             query: dict,
                             headers: dict,
                             configuration_payloads: list,
-                            execution: Execution):
+                            execution: Execution,
+                            params: dict):
         return {
             'TRIGGER_PAYLOAD': payload,
             'CONFIG_PAYLOADS': json.dumps(configuration_payloads),
             'COMMUNICATION_TOKEN': communication_token,
             'HTTP_QUERY': json.dumps(query),
+            'PARAMS': json.dumps(params),
             'HTTP_HEADERS': json.dumps(headers),
             'BUILD_NUMBER': execution.execution_number,
             'MASTER_BASE_URL': self._master_url,
@@ -70,7 +72,7 @@ class DockerRunSupervisor(Supervisor):
         self.image = image
 
     def execute(self, execution: Execution, script: str, payload: str, communication_token: str,
-                query: dict, headers: dict, configuration_payloads: list) -> ExecutionResult:
+                query: dict, headers: dict, configuration_payloads: list, params: dict) -> ExecutionResult:
 
         Logger.debug('Spawning docker container')
 
@@ -89,7 +91,8 @@ class DockerRunSupervisor(Supervisor):
         env = self.prepare_environment(
             payload=payload, communication_token=communication_token,
             query=query, headers=headers, configuration_payloads=configuration_payloads,
-            execution=execution
+            execution=execution,
+            params=params
         )
 
         Logger.debug('supervisor: ' + Supervisor.env_to_string(env))

@@ -16,6 +16,7 @@ class Attributes:
     STATUS_DONE = 'success'
     STATUS_FAILURE = 'failure'
 
+
 class ORM:
     engine: Engine
     session: Session  # type: Session
@@ -60,6 +61,7 @@ class Pipeline:
     secret: str
     script: str
     configs: list
+    params: dict
     retrieve_script: Callable
 
     def get_configuration_payloads(self):

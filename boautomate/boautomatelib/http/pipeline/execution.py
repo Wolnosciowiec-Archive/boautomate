@@ -102,7 +102,8 @@ class ExecutionHandler(BasePipelineHandler):  # pragma: no cover
                 communication_token=token,
                 query=self._get_serializable_query_arguments(),
                 headers=dict(self.request.headers.get_all()),
-                configuration_payloads=pipeline.get_configuration_payloads()
+                configuration_payloads=pipeline.get_configuration_payloads(),
+                params=pipeline.params
             )
 
         # finish

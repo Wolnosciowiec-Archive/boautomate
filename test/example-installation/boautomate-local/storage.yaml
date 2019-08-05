@@ -1,0 +1,15 @@
+local:
+    type: local
+    default: true
+    params:
+        path: ./test/example-installation
+
+test_gitfs:
+    type: git
+    default: true
+    params:
+        url: git@github.com:blackandred/test.git
+        branch: master
+        key: ~/.ssh/id_rsa
+        passphrase: test123
+        root: ''

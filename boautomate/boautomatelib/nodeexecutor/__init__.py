@@ -18,6 +18,7 @@ class NodeExecutor:
     _token: str
     _query: dict
     _headers: dict
+    _params: dict
     _ctx: ExecutionContext
     _api: Api
     locks: Locks
@@ -28,19 +29,87 @@ class NodeExecutor:
         self._token = os.getenv('COMMUNICATION_TOKEN', '')
         self._query = json.loads(os.getenv('HTTP_QUERY', '{}'))
         self._headers = json.loads(os.getenv('HTTP_HEADERS', '{}'))
+        self._params = json.loads(os.getenv('PARAMS', '{}'))
         self._populate_context()
         self._create_api_client()
 
     def get_query_argument(self, arg: str, default = None):
-        return self._query.get(arg) if arg in self._query else default
+        """
+        Returns a parameter from user's HTTP query string that started this Pipeline Execution
+
+        Be careful! Escape this value, it comes from the user.
+
+        :param arg:
+        :param default:
+        :return:
+        """
+
+        if arg in self._query:
+            if len(self._query[arg]) == 1:
+                return self._query[arg][0]
+
+            return self._query.get(arg)
+
+        return default
+
+    def get_param(self, arg: str, default = None):
+        """
+        Returns parameter configured in the Pipeline definition
+
+        :param arg:
+        :param default:
+        :return:
+        """
+
+        return self._params.get(arg) if arg in self._params else default
+
+    def get_overridable_param(self, arg: str, default = None):
+        """
+        Parameter taken in order from:
+          - QUERY STRING
+          - PIPELINE PARAMS
+
+        Be careful! Escape this value, it comes from the user.
+
+        :param arg:
+        :param default:
+        :return:
+        """
+
+        if arg in self._query:
+            return self.get_query_argument(arg)
+
+        if arg in self._params:
+            return self._params[arg]
+
+        return default
 
     def get_header(self, arg: str, default = None):
+        """
+        Returns a HTTP header value from a request that triggered this Pipeline execution
+
+        :param arg:
+        :param default:
+        :return:
+        """
+
         return self._headers.get(arg) if arg in self._headers else default
 
     def get_build_number(self) -> int:
+        """
+        Build number of a Pipeline (Execution number)
+
+        :return:
+        """
+
         return int(os.getenv('BUILD_NUMBER', 1))
 
     def get_pipeline_id(self) -> str:
+        """
+        Pipeline name/id
+        :return:
+        """
+
         return os.getenv('PIPELINE_ID')
 
     def _create_api_client(self):
@@ -51,6 +120,11 @@ class NodeExecutor:
         self._ctx = ExecutionContext(self._payload, self._config)
 
     def context(self) -> ExecutionContext:
+        """
+        Facts and tools context
+        :return:
+        """
+
         return self._ctx
 
     def assert_what_is_going_on_at_least_one_of(self, actions: list):

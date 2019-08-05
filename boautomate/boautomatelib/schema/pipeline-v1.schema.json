@@ -1,10 +1,14 @@
 {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+
     "type": "object",
     "properties": {
         "schema": {"type":  "string"},
         "title": {"type":  "string"},
         "secret": {"type": "string"},
         "script": {"type":  "string"},
-        "configs": {"type":  "string"}
-    }
+        "configs": {"type":  "string"},
+        "params": {"type":  "object"}
+    },
+    "required": ["params", "configs", "script", "secret", "title", "schema"]
 }

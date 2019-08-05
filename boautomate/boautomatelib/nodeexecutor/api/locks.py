@@ -45,12 +45,21 @@ class Locks:
             'regexp': regexp,
             'expires_at': str(datetime.now() + (expires_in if expires_in else timedelta(hours=2)))
         })
-        print(response.text)
+
+        if response.status_code != 200:
+            raise PipelineSyntaxError('Cannot create lock. ' + str(response.text))
 
     def delete_lock(self, lock: str):
-        self._api.delete(route_delete_lock(self._pipeline_id, lock))
+        response = self._api.delete(route_delete_lock(self._pipeline_id, lock))
+
+        if response.status_code != 200:
+            raise PipelineSyntaxError('Cannot delete lock. ' + str(response.text))
 
     def lock_exists(self, lock: str):
         response = self._api.get(route_get_lock(self._pipeline_id, lock))
+
+        if response.status_code > 499:
+            raise PipelineSyntaxError('Internal server error while trying to access lock information. ' +
+                                      str(response.text))
 
         return response.status_code == 200
