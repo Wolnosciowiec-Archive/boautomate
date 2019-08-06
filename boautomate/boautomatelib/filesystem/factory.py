@@ -8,12 +8,14 @@ from .multiplefs import MultipleFilesystemAdapter
 from . import StorageSpec, Filesystem
 from ..logging import Logger
 from ..schema import Schema
-from ..exceptions import StorageException
+from ..exceptions import StorageException, SchemaNotFoundError
+from ..resolver import Resolver
 
 
 class FSFactory:
     _annotation_regexp: typing.Pattern
     _storage_config_path: str
+    _resolver: Resolver
 
     mapping = {
         '': LocalFilesystem,
@@ -23,12 +25,13 @@ class FSFactory:
 
     constructed: dict
 
-    def __init__(self, _storage_config_path: str):
+    def __init__(self, resolver: Resolver):
         self.constructed = {}
-        self._storage_config_path = _storage_config_path
+        self._storage_config_path = resolver.get('storage')
+        self._resolver = resolver
 
     def create(self) -> MultipleFilesystemAdapter:
-        storagespecs = self._parse(self._storage_config_path)
+        storage_specs = self._parse(self._storage_config_path)
 
         adapters = [
             self._create_adapter(
@@ -38,7 +41,7 @@ class FSFactory:
             )
         ]
 
-        for name, spec in storagespecs.items():
+        for name, spec in storage_specs.items():
             spec['name'] = name
 
             try:
@@ -70,7 +73,7 @@ class FSFactory:
         if spec.type not in self.mapping:
             raise StorageException('Unknown storage type or name: "' + spec.type + '"')
 
-        instance = self.mapping[spec.type](spec.params, spec)
+        instance = self.mapping[spec.type](spec, self._resolver)
         self.constructed[spec.name] = instance
 
         Logger.debug('Initialized filesystem under name "%s"' % spec.name)
@@ -78,7 +81,7 @@ class FSFactory:
         return instance
 
     def _get_local_boautomate_location(self) -> str:
-        return os.path.dirname(os.path.abspath(__file__)) + '/../'
+        return os.path.dirname(os.path.abspath(__file__)) + '/../../'
 
     def _parse(self, storage_config_file: str):
         """
@@ -92,5 +95,15 @@ class FSFactory:
             raise StorageException('Configuration file "%s" does not exist' % storage_config_file)
 
         with open(storage_config_file, 'rb') as f:
-            return Schema.parse_yaml_with_validation(f.read().decode('utf-8'), 'config/storage')
+            fs_config = Schema.parse_yaml_with_validation(f.read().decode('utf-8'), 'config/storage')
 
+            for name, spec_as_dict in fs_config.items():
+                try:
+                    Schema.validate_parsed_payload(spec_as_dict['params'],
+                                                   'config/filesystems/%s.fs' % spec_as_dict['type'])
+                except SchemaNotFoundError:
+                    Logger.warning('Schema validation for filesystem "%s" not found' % spec_as_dict['type'])
+                    continue
+                # @todo: Add schema exception catching with adding a proper message and converting it into storage exception
+
+            return fs_config

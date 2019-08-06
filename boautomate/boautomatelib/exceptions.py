@@ -46,3 +46,11 @@ class HttpError(Exception):
     def __init__(self, http_code: int, message: str):
         super().__init__(message)
         self.http_code = http_code
+
+
+class SchemaException(ConfigurationException):
+    pass
+
+
+class SchemaNotFoundError(SchemaException):
+    pass

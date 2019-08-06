@@ -1,8 +1,9 @@
-local:
+example:
     type: local
     default: true
     params:
-        path: ./test/example-installation
+        path: ./test/example-installation/storage
+        readonly: false
 
 test_gitfs:
     type: git
@@ -12,4 +13,5 @@ test_gitfs:
         branch: master
         key: ~/.ssh/id_rsa
         passphrase: test123
-        root: ''
+        chroot: ''
+        readonly: false

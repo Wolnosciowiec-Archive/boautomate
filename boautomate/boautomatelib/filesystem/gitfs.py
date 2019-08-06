@@ -1,23 +1,16 @@
 
 import re
-from git import Repo as GitRepo
+import os
+import git
 
 from . import Filesystem, StorageSpec
+from ..resolver import Resolver
+from ..exceptions import StorageException
 
 
 class GitFilesystem(Filesystem):
     """
     GitFS allows to use GIT as a storage to keep ex. pipeline configuration, scripts
-
-    Example:
-    git://git@github.com:riotkit-org/boautomate.git;passphrase=test;branch=master;key=./key
-
-    spec = git@github.com:riotkit-org/boautomate.git
-    params = {
-        passphrase: test,
-        branch: master,
-        key: ./key
-    }
 
     :param Filesystem:
     :return:
@@ -28,19 +21,41 @@ class GitFilesystem(Filesystem):
     user: str
     passphrase: str
     key: str
-    _repo: GitRepo
 
-    # static variable  @todo: Parametrize
-    reposPath = '/var/lib/boautomate/git/%s'
+    _repo: git.Repo
+    repositories_path: str
 
-    def __init__(self, params: dict, spec: StorageSpec):
+    def __init__(self, spec: StorageSpec, resolver: Resolver):
+        self._prepare_local_path(resolver)
         self.spec = spec
-        print('git')
-        # self._repo = GitRepo(path=self._get_constant_path(spec))
-        # self._repo.clone(spec, branch=params.get('branch', 'master'))
+        self._repo = git.Repo()
+        self._branch = self.spec.params.get('branch', 'master')
+
+        try:
+            self._repo.clone(self._get_constant_path(spec.params.get('url')), branch=self._branch)
+
+        except git.exc.GitCommandError as err:
+            if "already exists and is not an empty directory" in str(err):
+                self._do_checkout()
+            else:
+                raise
+
+        self._repo.remote('origin').pull(self._branch)
+
+    def _do_checkout(self):
+        try:
+            branch = self._repo.heads[self._branch]
+            branch.checkout()
+        except IndexError as e:
+            raise StorageException('Branch "%s" not found, %s' % (self._branch, str(e)))
 
     def _get_constant_path(self, spec: str):
-        return self.reposPath % self._normalize_repo_name(spec)
+        repo_path = self.repositories_path + '/' + self._normalize_repo_name(spec) + '/'
+
+        if not os.path.isdir(repo_path):
+            os.mkdir(repo_path)
+
+        return repo_path
 
     def file_exists(self, name: str) -> bool:
         pass
@@ -51,6 +66,16 @@ class GitFilesystem(Filesystem):
     def retrieve_file(self, name: str) -> str:
         pass
 
-    def _normalize_repo_name(self, spec: str):
-        return re.sub('[^a-zA-Z_-]+', '', spec)
+    def _normalize_repo_name(self, url: str):
+        repo_name = url.replace('@', '_at_') \
+            .replace('/', '-') \
+            .replace(':', '-')
+
+        return re.sub('[^a-zA-Z_\-.]+', '', repo_name)
+
+    def _prepare_local_path(self, resolver: Resolver):
+        self.repositories_path = resolver.resolve_string('%local_path%/git')
+
+        if not os.path.isdir(self.repositories_path):
+            os.mkdir(self.repositories_path)
 

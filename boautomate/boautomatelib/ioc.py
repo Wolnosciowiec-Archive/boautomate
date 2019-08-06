@@ -51,7 +51,7 @@ class Container:
         self.token_manager = TokenManager(repository=self.token_repository)
 
         # filesystem related
-        self.fs_factory = FSFactory(self.resolver.get('storage'))
+        self.fs_factory = FSFactory(self.resolver)
         self.filesystem = self.fs_factory.create()
         self.fs_tpl = Templating(self.filesystem, self.fs_factory)
         self.pipeline_repository = PipelineRepository(self.filesystem, self.fs_tpl)

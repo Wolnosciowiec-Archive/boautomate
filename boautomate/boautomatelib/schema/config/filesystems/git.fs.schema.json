@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+
+    "type": "object",
+    "properties": {
+        "url": {"type":  "string"},
+        "branch": {"type": "string"},
+        "user": {"type": "string"},
+        "passphrase": {"type": "string"},
+        "key": {"type":  "string"},
+        "chroot": {"type": "string"},
+        "readonly": {"type": "boolean"}
+    },
+    "required": ["url", "branch"]
+}
