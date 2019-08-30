@@ -6,6 +6,8 @@ import json
 import os
 from docker import DockerClient
 from docker.models.containers import Container as DockerContainer, ExecResult
+from tzlocal import get_localzone
+
 from .persistence import Execution
 from .logging import Logger
 
@@ -49,8 +51,13 @@ class Supervisor(abc.ABC):
             'HTTP_HEADERS': json.dumps(headers),
             'BUILD_NUMBER': execution.execution_number,
             'MASTER_BASE_URL': self._master_url,
-            'PIPELINE_ID': execution.pipeline_id
+            'PIPELINE_ID': execution.pipeline_id,
+            'TZ': Supervisor.get_timezone()
         }
+
+    @staticmethod
+    def get_timezone():
+        return get_localzone().zone
 
     @staticmethod
     def env_to_string(env: dict) -> str:

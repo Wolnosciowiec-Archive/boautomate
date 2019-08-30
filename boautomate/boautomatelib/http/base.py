@@ -4,9 +4,8 @@ import tornado.web
 import traceback
 from abc import ABC
 from typing import Optional, Awaitable, Any, Union
-from jsonschema.exceptions import ValidationError
 from tornado_swagger.model import register_swagger_model
-from ..exceptions import HttpError
+from ..exceptions import HttpError, SchemaValidationException
 from ..logging import Logger
 from ..ioc import Container
 
@@ -71,8 +70,8 @@ class BaseHandler(ABC, tornado.web.RequestHandler):
         if "exc_info" in kwargs:
             try:
                 raise
-            except ValidationError as e:
-                self.raise_validation_error(str(e.message))
+            except SchemaValidationException as e:
+                self.raise_validation_error(str(e))
                 return
             except HttpError as e:
                 self.set_status(e.http_code)

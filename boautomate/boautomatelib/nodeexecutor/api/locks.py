@@ -21,8 +21,13 @@ class Locks:
         self._pipeline_id = pipeline_id
 
     @contextmanager
-    def lock(self, lock: str, mode: str, expires_in: timedelta = None, regexp: str = '', seconds: int = 5):
-        if self.lock_exists(lock):
+    def lock(self, lock: str, mode: str, expires_in: timedelta = None, regexp: str = '', schema: str = '',
+             keywords: list = None, seconds: int = 5, partial: bool = False):
+
+        if keywords is None:
+            keywords = []
+
+        if  self.lock_exists(lock):
             if mode == self.MODE_WAIT_UNTIL_RELEASED:
                 try:
                     wait_until(callback=lambda: not self.lock_exists(lock), seconds=seconds)
@@ -34,26 +39,47 @@ class Locks:
             else:
                 raise PipelineSyntaxError('Invalid locking mode specified')
 
-        self.create_lock(lock, expires_in, regexp)
+        self.create_lock(lock, expires_in, regexp, keywords, schema, self._pipeline_id, partial)
+
         try:
             yield
         finally:
             self.delete_lock(lock)
 
-    def create_lock(self, lock: str, expires_in: timedelta = None, regexp: str = ''):
-        response = self._api.put(route_put_lock(self._pipeline_id, lock), json={
+    def create_lock(self, lock: str, expires_in: timedelta = None,
+                    regexp: str = '', keywords: list = None, schema: str = '',
+                    pipeline: str = None, partial: bool = False):
+
+        if keywords is None:
+            keywords = []
+
+        qs = '?'
+
+        if pipeline:
+            qs += 'pipeline_id=' + pipeline
+
+        response = self._api.put(route_put_lock(self._pipeline_id, lock) + qs, json={
             'regexp': regexp,
+            'keywords': keywords,
+            'schema': str(schema),
+            'partial': partial,
             'expires_at': str(datetime.now() + (expires_in if expires_in else timedelta(hours=2)))
         })
 
         if response.status_code != 200:
-            raise PipelineSyntaxError('Cannot create lock. ' + str(response.text))
+            raise PipelineSyntaxError('Cannot create lock. The main node responded: HTTP(%i): %s' % (
+                response.status_code, str(response.text)
+            ))
+
+        print('################################', response.text)
 
     def delete_lock(self, lock: str):
         response = self._api.delete(route_delete_lock(self._pipeline_id, lock))
 
         if response.status_code != 200:
-            raise PipelineSyntaxError('Cannot delete lock. ' + str(response.text))
+            raise PipelineSyntaxError('Cannot delete lock. The main node responded: HTTP(%i): %s' % (
+                response.status_code, str(response.text)
+            ))
 
     def lock_exists(self, lock: str):
         response = self._api.get(route_get_lock(self._pipeline_id, lock))

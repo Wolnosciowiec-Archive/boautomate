@@ -1,4 +1,6 @@
 
+from sqlalchemy.orm.session import Session
+
 from .persistence import ORM
 from .filesystem import Filesystem
 from .filesystem.factory import FSFactory
@@ -6,8 +8,8 @@ from .filesystem.templating import Templating
 from .repository import PipelineRepository, ExecutionRepository, TokenRepository, LocksRepository
 from .supervisor import Supervisor, DockerRunSupervisor
 from .tokenmanager import TokenManager
+from .locks import LocksManager
 from .resolver import Resolver
-from sqlalchemy.orm.session import Session
 from .logging import Logger
 
 
@@ -55,6 +57,8 @@ class Container:
         self.filesystem = self.fs_factory.create()
         self.fs_tpl = Templating(self.filesystem, self.fs_factory)
         self.pipeline_repository = PipelineRepository(self.filesystem, self.fs_tpl)
+
+        self.locks_manager = LocksManager(repository=self.lock_repository, fs_templating=self.fs_tpl)
 
         # supervisors related
         self.supervisor = DockerRunSupervisor(base_url=None, image=params['docker_image'], master_url=self.self_url)

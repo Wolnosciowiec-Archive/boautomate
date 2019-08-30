@@ -1,11 +1,12 @@
 
-from sqlalchemy import create_engine, Column, Integer, String, types, DateTime, Boolean, ForeignKey, PrimaryKeyConstraint
+from sqlalchemy import create_engine, Column, Integer, String, types, DateTime, Boolean, ForeignKey, PrimaryKeyConstraint, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.dialects.mysql.base import MSText
 from sqlalchemy.orm.session import Session
 from sqlalchemy.engine.base import Engine
 from typing import Callable
+from datetime import datetime
 import uuid
 from .logging import Logger
 Base = declarative_base()
@@ -136,13 +137,27 @@ class Lock(Base):
     id = Column(String, nullable=False)             # lock name, custom
     pipeline_id = Column(String, nullable=False)
     expires_at = Column(DateTime, nullable=False)
-    payload_regexp = Column(String, nullable=True)  # optional regexp to filter payload by on Supervisor level
+    payload_regexp = Column(String, nullable=True)   # optional regexp to filter payload by
+    payload_schema = Column(String, nullable=True)   # optional jsonschema to filter payload by
+    payload_keywords = Column(JSON, nullable=True)   # optional keywords to filter payload by
+
+    def count_payload_filters(self):
+        list_of_filters = [self.payload_keywords, self.payload_regexp, self.payload_schema]
+
+        return len(list(filter(lambda x: x, list_of_filters)))
+
+    def is_expired(self):
+        return self.expires_at < datetime.now()
 
     def to_dict(self) -> dict:
         return {
             'id': self.id,
             'pipeline_id': self.pipeline_id,
             'expires_at': str(self.expires_at),
-            'payload_regexp': self.payload_regexp
+            'filters': {
+                'regexp': self.payload_regexp,
+                'schema': self.payload_schema,
+                'keywords': self.payload_keywords
+            }
         }
 

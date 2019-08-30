@@ -7,6 +7,7 @@ from .exceptions import EntityNotFound
 from sqlalchemy.orm.session import Session
 from sqlalchemy import func, desc
 from sqlalchemy.orm.exc import NoResultFound as ORMNoResultFound
+from typing import List
 from uuid import uuid4
 import datetime
 
@@ -39,7 +40,7 @@ class PipelineRepository:
 
         pipeline = PipelineParser.parse(id, content)
         pipeline.configs = self.fs_tpl.inject_includes(pipeline.configs)
-        pipeline.retrieve_script = lambda: self.fs_tpl.inject_includes(pipeline.script)
+        pipeline.retrieve_script = lambda: self.fs_tpl.inject_includes(pipeline.script, deep=False)
 
         return pipeline
 
@@ -119,10 +120,15 @@ class LocksRepository(BaseRepository):
     def find_all(self) -> list:
         return self.orm.query(Lock).all()
 
+    def find_all_for_pipe(self, pipeline_id: str) -> List[Lock]:
+        return self.orm.query(Lock) \
+            .filter(Lock.pipeline_id == pipeline_id) \
+            .all()
+
     def find_by(self, lock_id: str, pipeline_id: str) -> Lock:
         try:
             return self.orm.query(Lock) \
-                .filter(Lock.pipeline_id == pipeline_id and Lock.id == lock_id) \
+                .filter(Lock.pipeline_id == pipeline_id, Lock.id == lock_id) \
                 .limit(1) \
                 .one()
         except ORMNoResultFound:

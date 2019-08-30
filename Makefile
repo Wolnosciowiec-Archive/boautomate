@@ -11,7 +11,10 @@ build_base_image: ## Build base image and tag as quay.io/riotkit/boautomate-exec
 
 run_test_server: ## Run test instance for API testing
 	touch db.sqlite3
-	${SUDO} python3 ./boautomate/__init__.py --db-string=sqlite:///db.sqlite3 --node-master-url=http://$$(ip route| grep $$(ip route |grep default | awk '{ print $$5 }') | grep -v "default" | awk '/scope/ { print $$9 }'):8080 --http-port=8080 --local-path=./test/example-installation/boautomate-local --log-level=debug --log-path=boautomate-test.log
+	set -x; ${SUDO} python3 ./boautomate/__init__.py --db-string=sqlite:///db.sqlite3 --node-master-url=http://$$(make _get_my_ip):8080 --http-port=8080 --local-path=./test/example-installation/boautomate-local --log-level=debug --log-path=boautomate-test.log
+
+_get_my_ip:
+	ip route| grep $$(ip route |grep default | awk '{ print $$5 }') | grep -v "default" | grep -v " via " | grep " src " | awk '/scope/ { print $$9 }'
 
 @test_locks_example: ## Locks example pipeline
 	bash -c "time curl -q -X POST http://localhost:8080/pipeline/locks-example/execute\?secret\=test -vvv"

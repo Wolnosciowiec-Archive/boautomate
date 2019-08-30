@@ -4,6 +4,10 @@ class StorageException(Exception):
     pass
 
 
+class StorageTemplateParsingError(StorageException):
+    pass
+
+
 class ExecutorException(Exception):
     pass
 
@@ -48,7 +52,15 @@ class HttpError(Exception):
         self.http_code = http_code
 
 
+class RequestValidationException(Exception):
+    pass
+
+
 class SchemaException(ConfigurationException):
+    pass
+
+
+class SchemaValidationException(SchemaException):
     pass
 
 

@@ -1,9 +1,8 @@
 
 import json
-import jsonschema
-import os
-from .exceptions import ConfigurationException
+from .exceptions import ConfigurationException, SchemaValidationException
 from .persistence import Pipeline
+from .schema import Schema
 
 
 class PipelineParser:
@@ -12,9 +11,9 @@ class PipelineParser:
         parsed = json.loads(content.encode('utf-8'))
 
         try:
-            jsonschema.validate(instance=parsed,
-                                schema=PipelineParser.get_schema(parsed['schema'] if 'schema' in parsed else ''))
-        except jsonschema.exceptions.ValidationError as validation_error:
+            Schema.validate_parsed_payload(parsed, parsed.get('schema', ''))
+
+        except SchemaValidationException as validation_error:
             raise ConfigurationException('Pipeline configuration error, details: ' + str(validation_error)) \
                 from validation_error
 
@@ -27,13 +26,3 @@ class PipelineParser:
         pipe.params = parsed['params']
 
         return pipe
-
-    @staticmethod
-    def get_schema(version: str) -> dict:
-        try:
-            with open(os.path.dirname(os.path.abspath(__file__)) + '/schema/' + version + '.schema.json') as f:
-                return json.loads(f.read())
-
-        except FileNotFoundError as fnf_error:
-            raise ConfigurationException('Invalid schema provided in field "schema". Parent error: ' + str(fnf_error)) \
-                from fnf_error

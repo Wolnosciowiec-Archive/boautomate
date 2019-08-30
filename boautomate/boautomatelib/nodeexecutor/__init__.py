@@ -5,6 +5,7 @@ import json
 from .context import ExecutionContext
 from .api import Api
 from .api.locks import Locks
+from .api.execution import setup_pipeline_api
 from ..exceptions import ScriptExpectationsNotMetException
 
 
@@ -115,6 +116,7 @@ class NodeExecutor:
     def _create_api_client(self):
         self._api = Api(os.getenv('MASTER_BASE_URL', ''), self._token)
         self.locks = Locks(self._api, self.get_pipeline_id())
+        setup_pipeline_api(self._api, self.get_pipeline_id())
 
     def _populate_context(self):
         self._ctx = ExecutionContext(self._payload, self._config)

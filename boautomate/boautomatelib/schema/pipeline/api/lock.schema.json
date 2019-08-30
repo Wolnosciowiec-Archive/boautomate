@@ -4,7 +4,9 @@
     "type": "object",
     "properties": {
         "expires_at": {"type": "string", "format": "date-time"},
-        "regexp": {"type": "string"}
+        "regexp": {"type": "string", "format": "regex"},
+        "keywords": {"type": "array"},
+        "schema": {"type": "string"}
     },
     "required": ["expires_at"]
 }

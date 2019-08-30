@@ -59,7 +59,7 @@ class ExecutionHandler(BasePipelineHandler):  # pragma: no cover
             200:
                 description: Log from the execution
             400:
-                description: When the fields are not correct
+                description: When the fields are not correct, or the Pipeline is locked from execution
                 schema:
                     $ref: '#/definitions/RequestError'
             403:
@@ -81,6 +81,8 @@ class ExecutionHandler(BasePipelineHandler):  # pragma: no cover
         pipeline = self._get_pipeline(pipeline_id)
 
         self.assert_has_access(pipeline)
+        self.assert_payload_not_blocked(pipeline, self.request.body.decode('utf-8'))
+
         script = pipeline.retrieve_script()
 
         # mark that we are "in-progress"

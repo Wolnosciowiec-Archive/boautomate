@@ -11,6 +11,7 @@ from .pipeline.declaration import DeclarationHandler
 from .pipeline.env import EnvHandler
 from .pipeline.api.locks import LocksHandler
 from .pipeline.api.locks_list import LocksListHandler
+from .pipeline.api.execution import ExecutionFromOtherPipeline
 from ..ioc import Container
 
 
@@ -33,6 +34,7 @@ class HttpServer:  # pragma: no cover
             (r"" + self._path_prefix + "/pipeline/([a-z0-9-]+)/declaration", DeclarationHandler),
             (r"" + self._path_prefix + "/pipeline/([a-z0-9-]+)/environment", EnvHandler),
             (r"" + self._path_prefix + "/pipeline/([a-z0-9-]+)/api/lock/([a-z0-9-_.]+)", LocksHandler),
+            (r"" + self._path_prefix + "/pipeline/([a-z0-9-]+)/api/execute-other", ExecutionFromOtherPipeline),
             (r"" + self._path_prefix + "/pipeline/([a-z0-9-]+)/execute", ExecutionHandler),
             (r"" + self._path_prefix + "/lock/list", LocksListHandler)
         ]

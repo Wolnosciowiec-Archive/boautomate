@@ -5,9 +5,10 @@ from dateutil.parser import parse as date_parse
 from .. import BasePipelineHandler
 from ....persistence import Lock
 from ....schema import Schema
-from ....exceptions import EntityNotFound
+from ....locks import LocksManager
+from ....exceptions import EntityNotFound, RequestValidationException
 
-Payload = namedtuple('Payload', 'expires_at regexp')
+Payload = namedtuple('Payload', 'expires_at regexp keywords schema')
 
 
 def route_put_lock(pipeline_id: str, lock_id: str) -> str:
@@ -32,13 +33,21 @@ class LocksHandler(BasePipelineHandler):
 
     def _parse(self, payload: str) -> Payload:
         Schema.validate_json_payload(payload, 'pipeline/api/lock')
-        parsed = Schema.parse_json(payload)
+        as_dict = Schema.parse_json(payload)
 
-        expires_at = date_parse(parsed.get('expires_at')) if parsed.get('expires_at') \
+        expires_at = date_parse(as_dict.get('expires_at')) if as_dict.get('expires_at') \
             else datetime.now() + timedelta(hours=2)
-        regexp = parsed.get('regexp')
+        regexp = as_dict.get('regexp')
+        keywords = as_dict.get('keywords')
+        schema = self.container.fs_tpl.inject_includes(as_dict.get('schema'))
 
-        return Payload(expires_at=expires_at, regexp=regexp)
+        try:
+            LocksManager.validate_filters_for_lock(keywords, regexp, schema)
+
+        except RequestValidationException as e:
+            self.raise_validation_error(str(e))
+
+        return Payload(expires_at=expires_at, regexp=regexp, keywords=keywords, schema=schema)
 
     async def put(self, pipeline_id: str, lock_id: str):
         """
@@ -49,11 +58,15 @@ class LocksHandler(BasePipelineHandler):
         if not pipeline:
             return
 
+        # can be in context of a Pipeline, but locking other Pipeline
+        subject_pipeline_id = self.request.query_arguments.get('pipeline_id')[0].decode('utf-8') \
+            if self.request.query_arguments.get('pipeline_id') else pipeline_id
+
         # 1. Verify access
         self.assert_has_access_to_internal_api(pipeline_id)
 
         # 2. Get subject
-        lock = self._get_lock(lock_id, pipeline_id, create=True)
+        lock = self._get_lock(lock_id, subject_pipeline_id, create=True)
 
         # 3. Parse payload
         payload = self._parse(self.request.body.decode('utf-8'))
@@ -61,6 +74,8 @@ class LocksHandler(BasePipelineHandler):
         # 4. Fill in the subject and persist
         lock.expires_at = payload.expires_at
         lock.payload_regexp = payload.regexp
+        lock.payload_schema = payload.schema
+        lock.payload_keywords = payload.keywords
 
         self.container.lock_repository.flush(lock)
         self.write({

@@ -33,6 +33,10 @@ class BasePipelineHandler(BaseHandler):
             self.write_no_access_error('Invalid secret code')
             raise Exception('Invalid secret code')
 
+    def assert_payload_not_blocked(self, pipeline: Pipeline, payload: str):
+        if self.container.locks_manager.is_payload_blocked_by_any_lock_on_pipeline(pipeline, payload):
+            self.raise_validation_error('Pipeline cannot be started with this payload, it was locked')
+
     def assert_has_access_to_internal_api(self, pipeline_id: str):
         try:
             token = self.container.token_manager.get(str(self.request.headers.get('Token')))

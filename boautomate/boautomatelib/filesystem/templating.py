@@ -4,6 +4,7 @@ import re
 from ..logging import Logger
 from . import Filesystem, Syntax
 from .factory import FSFactory
+from ..exceptions import StorageTemplateParsingError
 
 
 class Templating:
@@ -14,11 +15,11 @@ class Templating:
         self.fs = fs
         self.fs_factory = fs_factory
 
-    def inject_includes(self, content: str):
+    def inject_includes(self, content: str, deep: bool = True):
         """
             Injects file contents in place of, example:
               - @storedAtPath(boautomate/hello-world.py)
-              - @storedAtFilesystem(file://./test/example-installation/configs/hello-world.conf.json)
+              - @storedAtFilesystem(boautomate-local).atPath(boautomatelib/schema/pipeline-v1.schema.json)
 
             Works recursively, until the syntax occurs in the content.
         """
@@ -33,7 +34,7 @@ class Templating:
             Syntax(
                 name="@storedOnFilesystem",
                 regexp=re.compile(
-                    '@storedOnFilesystem\(([A-Za-z.0-9\-_+/,:;()%!$@\[\]{}?<> ]+)\).atPath\(([A-Za-z.0-9\-_+/,:;()%!$ ]+)\)',
+                    '@storedOnFilesystem\(([A-Za-z.0-9\-_+\/,:;()%!$@\[\]{}?<> ]+)\).atPath\(([A-Za-z.0-9\-_+\/,:;()%!$ ]+)\)',
                     re.IGNORECASE),
                 callback=self._stored_on_filesystem
             )
@@ -45,7 +46,10 @@ class Templating:
                 match = syntax.regexp.match(content)
 
                 if not match:
-                    raise Exception('Logic error, marker "%s" found, but regexp failed to parse it' % syntax.name)
+                    if not deep:
+                        break
+
+                    raise StorageTemplateParsingError('Logic error, marker "%s" found, but regexp failed to parse it' % syntax.name)
 
                 Logger.debug('fs.Templating injecting template ' + str(match.groups()))
                 content = content.replace(match.string, syntax.callback(match))

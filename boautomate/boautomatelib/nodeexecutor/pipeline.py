@@ -17,6 +17,9 @@ from ..exceptions import TimeoutException
 def stage(title=''):
     """ Opens and closes a stage. Each stdout and log is collected and sent to a server for each stage. """
 
+    # @todo: Implement stages by capturing logs and sending to server after stage finishes
+    # @todo: Locking support
+
     yield
 
 
