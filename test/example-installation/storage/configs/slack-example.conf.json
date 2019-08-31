@@ -1,0 +1,8 @@
+[
+    {
+        "fact": {
+            "type": "Slack+WebhookUrl",
+            "url": "http://localhost/some-slack-webhook-url"
+        }
+    }
+]

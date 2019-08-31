@@ -8,6 +8,10 @@ from . import Api
 from ...http.pipeline.api.locks import route_put_lock, route_delete_lock, route_get_lock
 from ..pipeline import wait_until
 
+"""
+    Locks resources on scheduling node, so other pipelines should wait or interrupt
+"""
+
 
 class Locks:
     _api: Api
@@ -27,7 +31,7 @@ class Locks:
         if keywords is None:
             keywords = []
 
-        if  self.lock_exists(lock):
+        if self.lock_exists(lock):
             if mode == self.MODE_WAIT_UNTIL_RELEASED:
                 try:
                     wait_until(callback=lambda: not self.lock_exists(lock), seconds=seconds)
@@ -70,8 +74,6 @@ class Locks:
             raise PipelineSyntaxError('Cannot create lock. The main node responded: HTTP(%i): %s' % (
                 response.status_code, str(response.text)
             ))
-
-        print('################################', response.text)
 
     def delete_lock(self, lock: str):
         response = self._api.delete(route_delete_lock(self._pipeline_id, lock))

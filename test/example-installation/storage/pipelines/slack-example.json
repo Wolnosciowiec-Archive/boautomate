@@ -1,0 +1,8 @@
+{
+    "schema": "pipeline-v1",
+    "title": "Simple Slack sending example",
+    "secret": "test",
+    "script": "@storedAtPath(scripts/slack-example.py)",
+    "configs": "@storedOnFilesystem(example).atPath(configs/slack-example.conf.json)",
+    "params": {}
+}

@@ -21,6 +21,7 @@ class FactsCollection(UserDict):
             map(lambda fact: fact, dict(self))
         )
 
+
 class GitFact(ParsedFact):
     """ Git repository fact """
 
@@ -43,6 +44,13 @@ class DockerRepositoryFact(ParsedFact):
         self.url = url
         self.repository_name = repository_name
         self.updated_tags = updated_tags
+
+
+class SlackUrlFact(ParsedFact):
+    url: str
+
+    def __init__(self, url: str):
+        self.url = url
 
 
 class DockerRegistryFact(ParsedFact):

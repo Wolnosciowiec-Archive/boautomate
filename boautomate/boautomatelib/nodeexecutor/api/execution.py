@@ -6,6 +6,10 @@ from ...http.pipeline.api.execution import route_execute
 from ...exceptions import PipelineSyntaxError
 from . import Api
 
+"""
+   Allows to schedule a run of any pipeline
+"""
+
 
 this = sys.modules[__name__]
 

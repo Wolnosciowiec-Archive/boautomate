@@ -1,5 +1,7 @@
 
 import json
+import inspect
+
 from ..payloadparser.facts import FactsCollection
 from ..payloadparser import PayloadParser
 from ..payloadparser.facts import DockerRegistryFact, DockerRepositoryFact
@@ -35,16 +37,58 @@ class ExecutionContext:
 
         return self.facts[fact_type]
 
+    def get_tool(self, object_type, **kwargs):
+        """
+        Constructs object of selected object_type ex. get(Slack)
+
+        :param object_type:
+        :return:
+        """
+
+        return self._lazy_get_or_create(str(object_type), lambda: self._create_from_signature(object_type, **kwargs))
+
+    def _create_from_signature(self, object_type, **kwargs):
+        """
+        Create object of "object_type" type, with dynamically injecting of facts
+        :param object_type:
+        :return:
+        """
+
+        sig = inspect.signature(object_type)
+
+        for param_name, param_type in sig.parameters.items():
+            extracted = str(param_type).split(': ')
+
+            # todo: Distinct between Facts class and other classes
+            if len(extracted) < 2 or "." not in extracted[1]:
+                continue
+
+            type_name = extracted[1]
+            kwargs[param_name] = self.get_fact(self._import_required_module(type_name).identify())
+
+        return object_type(**kwargs)
+
+    @staticmethod
+    def _import_required_module(type_name: str):
+        """ Dynamically import a module for Dependency Injection """
+
+        parts = type_name.split('.')
+        namespace = ".".join(parts[0:-1])
+        classname = "".join(parts[-1:])
+
+        exec('from %s import %s' % (namespace, classname))
+        return eval(classname)
+
     def docker_registry(self) -> DockerRegistry:
-        return self._lazy_get(
+        return self._lazy_get_or_create(
             'docker_registry',
             lambda: DockerRegistry(
                 self.get_fact(DockerRegistryFact.identify()),
-                self.get_fact(DockerRepositoryFact.identify(), None)
+                self.get_fact(DockerRepositoryFact.identify(), any)
             )
         )
 
-    def _lazy_get(self, store_as: str, func: callable):
+    def _lazy_get_or_create(self, store_as: str, func: callable):
         if store_as not in self._tools:
             self._tools[store_as] = func()
 

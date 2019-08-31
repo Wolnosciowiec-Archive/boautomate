@@ -2,6 +2,7 @@
 from .base import BaseParser, FactsCollection
 from .quay import QuayParser
 from .git import InternalGitFactsParser, InternalGitCredentialsParser
+from .slack import InternalSlackUrlParser
 from .docker import DockerAuthorizationParser
 
 
@@ -10,6 +11,7 @@ class PayloadParser(BaseParser):
         QuayParser(),
         InternalGitFactsParser(),
         InternalGitCredentialsParser(),
+        InternalSlackUrlParser(),
         DockerAuthorizationParser()
     ]
 
