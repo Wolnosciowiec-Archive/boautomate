@@ -10,6 +10,8 @@ from sqlalchemy.orm.exc import NoResultFound as ORMNoResultFound
 from typing import List
 from uuid import uuid4
 import datetime
+from json import loads as json_loads
+from json import JSONDecodeError
 
 
 class BaseRepository:
@@ -40,6 +42,13 @@ class PipelineRepository:
 
         pipeline = PipelineParser.parse(id, content)
         pipeline.configs = self.fs_tpl.inject_includes(pipeline.configs)
+
+        if type(pipeline.configs) == str:
+            try:
+                pipeline.configs = json_loads(pipeline.configs)
+            except JSONDecodeError:
+                pass
+
         pipeline.retrieve_script = lambda: self.fs_tpl.inject_includes(pipeline.script, deep=False)
 
         return pipeline
