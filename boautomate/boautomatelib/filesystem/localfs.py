@@ -19,6 +19,7 @@ class LocalFilesystem(Filesystem):
 
         self.ro = bool(spec.params.get('readonly', False))
         self.path = spec.params.get('path')
+        Logger.info('Initialized local filesystem at "%s" path' % self.path)
 
     def file_exists(self, name: str) -> bool:
         return os.path.isfile(self.path + '/' + name)

@@ -5,13 +5,14 @@ example:
         path: ./test/example-installation/storage
         readonly: false
 
-#test_gitfs:
-#    type: git
-#    default: true
-#    params:
-#        url: git@github.com:blackandred/test.git
-#        branch: master
-#        key: ~/.ssh/id_rsa
-#        passphrase: test123
-#        chroot: ''
-#        readonly: false
+test_gitfs:
+    type: git
+    default: true
+    params:
+        url: https://github.com/blackandred/test.git
+        branch: master
+        key: ''
+        passphrase: ""
+        chroot: ''
+        readonly: true
+        pull_interval: 60

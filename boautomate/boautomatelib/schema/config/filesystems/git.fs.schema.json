@@ -9,7 +9,8 @@
         "passphrase": {"type": "string"},
         "key": {"type":  "string"},
         "chroot": {"type": "string"},
-        "readonly": {"type": "boolean"}
+        "readonly": {"type": "boolean"},
+        "pull_interval": {"type": "integer"}
     },
     "required": ["url", "branch"]
 }
