@@ -1,11 +1,16 @@
+#!/usr/bin/env python3
+
+# standard bootstrap code
 import sys
+import os
+
+sys.path = [os.environ.get('BOAUTOMATE_PATH', '/opt/boautomate')] + sys.path
+# end of standard bootstrap code
 
 """
     Slack example
     =============
 """
-
-sys.path.append('/opt/boautomate')
 
 from boautomate.boautomatelib.nodeexecutor import NodeExecutor
 from boautomate.boautomatelib.nodeexecutor.pipeline import info, stage

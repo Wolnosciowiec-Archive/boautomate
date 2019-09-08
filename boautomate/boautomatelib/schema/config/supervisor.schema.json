@@ -1,0 +1,34 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "nodes": {
+            "type": "object",
+            "items": {
+                "$ref": "#/definitions/node"
+            },
+            "minItems": 1
+        },
+        "settings": {
+            "$ref": "#/definitions/settings"
+        }
+    },
+
+    "definitions": {
+        "node": {
+            "type": "object",
+            "properties": {
+                "default": {"type": "boolean"},
+                "type": {"type": "string"},
+                "labels": {"type": "array"},
+                "attributes": {"type": "object"}
+            }
+        },
+        "settings": {
+            "properties": {
+                "selection_strategy": {"type": "string"}
+            },
+            "required": ["selection_strategy"]
+        }
+    }
+}

@@ -21,6 +21,7 @@ class PipelineParser:
         pipe.id = id
         pipe.script = parsed['script']
         pipe.secret = parsed['secret']
+        pipe.supervisor_label = parsed.get('supervisor_label', '')
         pipe.configs = parsed['configs']
         pipe.title = parsed['title']
         pipe.params = parsed['params']

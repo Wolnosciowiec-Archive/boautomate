@@ -35,9 +35,6 @@ def main():
     parser.add_argument('--log-level',
                         help='Logging level (debug, info, warning, error)',
                         default='info')
-    parser.add_argument('--docker-image',
-                        help='Docker image for the executor',
-                        default='quay.io/riotkit/boautomate-executor-base-img:latest')
     parser.add_argument('--local-path',
                         help='Local Boautomate directory to ex. store cache, git repositories',
                         default='/var/lib/boautomate')

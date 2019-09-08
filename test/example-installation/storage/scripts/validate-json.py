@@ -1,10 +1,14 @@
+# standard bootstrap code
 import sys
+import os
+
+sys.path = [os.environ.get('BOAUTOMATE_PATH', '/opt/boautomate')] + sys.path
+# end of standard bootstrap code
+
 
 """
     Just an example pipeline to do something for testing
 """
-
-sys.path.append('/opt/boautomate')
 
 from boautomate.boautomatelib.nodeexecutor import NodeExecutor
 from json import loads as json_loads, JSONDecodeError, dumps as json_dumps

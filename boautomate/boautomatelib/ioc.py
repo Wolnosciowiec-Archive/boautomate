@@ -6,11 +6,12 @@ from .filesystem import Filesystem
 from .filesystem.factory import FSFactory
 from .filesystem.templating import Templating
 from .repository import PipelineRepository, ExecutionRepository, TokenRepository, LocksRepository
-from .supervisor import Supervisor, DockerRunSupervisor
+from .supervisor import Supervisor
+from .supervisor.factory import SupervisorFactory
 from .tokenmanager import TokenManager
 from .locks import LocksManager
 from .resolver import Resolver
-from .logging import Logger
+from .logger import Logger
 
 
 class Container:
@@ -34,6 +35,7 @@ class Container:
     self_url: str
     local_path: str
     resolver: Resolver
+    supervisor_factory: SupervisorFactory
 
     def __init__(self, params: dict):
         Logger.debug('Initializing the IoC container')
@@ -61,4 +63,5 @@ class Container:
         self.locks_manager = LocksManager(repository=self.lock_repository, fs_templating=self.fs_tpl)
 
         # supervisors related
-        self.supervisor = DockerRunSupervisor(base_url=None, image=params['docker_image'], master_url=self.self_url)
+        self.supervisor_factory = SupervisorFactory(self.resolver, self.self_url, self.pipeline_repository)
+        self.supervisor = self.supervisor_factory.create()

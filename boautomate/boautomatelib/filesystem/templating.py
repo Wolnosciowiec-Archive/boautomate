@@ -1,7 +1,17 @@
 
+"""
+    Filesystem Templating
+    =====================
+
+    Templating system designed to allow files inclusion from any place.
+    For example in pipeline definition you can place a "@storedAtPath(boautomate/hello-world.py)" that will include
+    that file from any filesystem, or you can include it from a specific filesystem by using syntax
+    "@storedAtFilesystem(boautomate-local).atPath(boautomatelib/schema/pipeline-v1.schema.json)"
+"""
+
 import typing
 import re
-from ..logging import Logger
+from ..logger import Logger
 from . import Filesystem, Syntax
 from .factory import FSFactory
 from ..exceptions import StorageTemplateParsingError

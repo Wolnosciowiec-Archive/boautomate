@@ -4,7 +4,7 @@ import json
 
 from .repository import LocksRepository
 from .persistence import Pipeline
-from .logging import Logger
+from .logger import Logger
 from .schema import Schema
 from .exceptions import RequestValidationException, SchemaValidationException
 from .filesystem.templating import Templating

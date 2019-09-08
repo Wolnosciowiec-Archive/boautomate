@@ -1,7 +1,7 @@
 
 from . import Filesystem
 from ..exceptions import StorageException
-from ..logging import Logger
+from ..logger import Logger
 
 
 class MultipleFilesystemAdapter(Filesystem):

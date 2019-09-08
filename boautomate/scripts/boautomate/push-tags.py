@@ -1,5 +1,10 @@
-
+# standard bootstrap code
 import sys
+import os
+
+sys.path = [os.environ.get('BOAUTOMATE_PATH', '/opt/boautomate')] + sys.path
+# end of standard bootstrap code
+
 import re
 
 """
@@ -9,8 +14,6 @@ import re
     When application was tagged with eg. 2.7.3, then tag also 2.7 and 2. 
     If there is no "3", then push to latest and to the latest-stable.
 """
-
-sys.path.append('/opt/boautomate')
 
 from boautomate.boautomatelib.nodeexecutor import NodeExecutor
 from boautomate.boautomatelib.nodeexecutor.pipeline import stage, info, fail, success

@@ -1,3 +1,28 @@
 CHANGES
 =======
 
+* Added support for gitfs
+* - Added support for context().get\_tool() in base class - NodeExecutor - Added tool "Slack" for sending simple messages to Slack (with example)
+* Fixed not loading configuration
+* WIP: Locking support
+* WIP: Filesystem schema validation, environment variables resolving in resolver
+* FS refactor, split into separate submodules for clarity
+* Initial refactor of FS
+* Restored MODE
+* Clean up
+* Simplification
+* Updated docs
+* Updated docs
+* Added docs
+* Swagger, locking mechanism, tokens
+* Configurable levels of logging and logging path
+* Added endpoint for debugging
+* Added asynchronous execution for HTTP endpoints
+* Cleaned up endpoints, added support for multiple storage adapters and for named adapters
+* Initial pipelines from files, instead from database, better error handling
+* Naming refactoring: Locator to Filesystem
+* Naming refactoring: LocalExecutor is now NodeExecutor
+* Naming refactoring: Executor is now Supervisor
+* The framework now will be by default placed at /opt/boautomate instead of /boautomate
+* Initial test version with working "boautomate/push-tags.py" script
+* Added to git, very initial version

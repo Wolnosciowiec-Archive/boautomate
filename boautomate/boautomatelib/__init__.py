@@ -4,7 +4,7 @@ from .ioc import Container
 from .persistence import ORM
 from .http import HttpServer
 from .repository import PipelineRepository
-from .logging import setup_logger, Logger
+from .logger import setup_logger, Logger
 
 
 class Boautomate:

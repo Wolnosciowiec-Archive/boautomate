@@ -1,72 +1,20 @@
 
-import abc
+"""
+    Docker Run Supervisor
+    =====================
+
+    Runs the pipeline in a docker container spawning a new container on each run.
+"""
+
 import tarfile
 import io
-import json
 import os
 from docker import DockerClient
 from docker.models.containers import Container as DockerContainer, ExecResult
-from tzlocal import get_localzone
 
-from .persistence import Execution
-from .logging import Logger
-
-
-class ExecutionResult:
-    output: str
-    exit_code: int
-
-    def __init__(self, output: str, exit_code: int):
-        self.output = output
-        self.exit_code = exit_code
-
-    def is_success(self) -> bool:
-        return self.exit_code == 0
-
-
-class Supervisor(abc.ABC):
-    _master_url: str
-
-    def __init__(self, master_url: str):
-        self._master_url = master_url
-
-    @abc.abstractmethod
-    def execute(self, execution: Execution, script: str, payload: str, communication_token: str,
-                query: dict, headers: dict, configuration_payloads: list, params: dict) -> ExecutionResult:
-        pass
-
-    def prepare_environment(self, payload: str,
-                            communication_token: str,
-                            query: dict,
-                            headers: dict,
-                            configuration_payloads: list,
-                            execution: Execution,
-                            params: dict):
-        return {
-            'TRIGGER_PAYLOAD': payload,
-            'CONFIG_PAYLOADS': json.dumps(configuration_payloads),
-            'COMMUNICATION_TOKEN': communication_token,
-            'HTTP_QUERY': json.dumps(query),
-            'PARAMS': json.dumps(params),
-            'HTTP_HEADERS': json.dumps(headers),
-            'BUILD_NUMBER': execution.execution_number,
-            'MASTER_BASE_URL': self._master_url,
-            'PIPELINE_ID': execution.pipeline_id,
-            'TZ': Supervisor.get_timezone()
-        }
-
-    @staticmethod
-    def get_timezone():
-        return get_localzone().zone
-
-    @staticmethod
-    def env_to_string(env: dict) -> str:
-        env_as_str = ''
-
-        for key, value in env.items():
-            env_as_str += ' ' + key + '="' + str(value).replace('"', '\\"') + '"'
-
-        return env_as_str.replace("\n", ' ')
+from ..persistence import Execution
+from ..logger import Logger
+from .base import Supervisor, ExecutionResult
 
 
 class DockerRunSupervisor(Supervisor):
@@ -128,7 +76,6 @@ class DockerRunSupervisor(Supervisor):
 
         # library
         tar.add(self._get_boautomate_path() + '/../', '/opt/boautomate', recursive=True)
-        tar.add(self._get_boautomate_path() + '/../requirements.txt', 'requirements.txt')
 
         # write
         tar.close()
@@ -136,5 +83,6 @@ class DockerRunSupervisor(Supervisor):
         tar_in_bytes.seek(0)
         return tar_in_bytes.read()
 
-    def _get_boautomate_path(self):
-        return os.path.dirname(os.path.abspath(__file__)) + '/../'
+    @staticmethod
+    def _get_boautomate_path():
+        return os.path.dirname(os.path.abspath(__file__)) + '/../../'

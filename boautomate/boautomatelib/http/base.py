@@ -6,7 +6,7 @@ from abc import ABC
 from typing import Optional, Awaitable, Any, Union
 from tornado_swagger.model import register_swagger_model
 from ..exceptions import HttpError, SchemaValidationException
-from ..logging import Logger
+from ..logger import Logger
 from ..ioc import Container
 
 

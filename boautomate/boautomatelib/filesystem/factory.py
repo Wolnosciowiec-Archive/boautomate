@@ -1,4 +1,11 @@
 
+"""
+    Filesystem Factory
+    ==================
+
+    Creates adapters, wraps them into MultipleFilesystemAdapter
+"""
+
 import os
 import typing
 
@@ -6,7 +13,7 @@ from .localfs import LocalFilesystem
 from .gitfs import GitFilesystem
 from .multiplefs import MultipleFilesystemAdapter
 from . import StorageSpec, Filesystem
-from ..logging import Logger
+from ..logger import Logger
 from ..schema import Schema
 from ..exceptions import StorageException, SchemaNotFoundError
 from ..resolver import Resolver
@@ -72,6 +79,8 @@ class FSFactory:
 
         if spec.type not in self.mapping:
             raise StorageException('Unknown storage type or name: "' + spec.type + '"')
+
+        # @todo: Add support for pluggable filesystem adapters
 
         instance = self.mapping[spec.type](spec, self._resolver)
         self.constructed[spec.name] = instance

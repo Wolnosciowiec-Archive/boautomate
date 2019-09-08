@@ -8,10 +8,11 @@ import traceback
 from hashlib import sha256
 from git.exc import GitCommandError
 
-from . import Filesystem, StorageSpec
+from . import StorageSpec
 from .localfs import LocalFilesystem
 from ..resolver import Resolver
-from ..logging import Logger
+from ..logger import Logger
+from ..exceptions import StorageException
 
 
 class GitFilesystem(LocalFilesystem):
@@ -134,9 +135,12 @@ class GitFilesystem(LocalFilesystem):
 
     def add_file(self, name: str, content: str) -> bool:
         if super(GitFilesystem, self).add_file(name=name, content=content):
-            self._repo.git.add(name)
-            self._repo.commit('Modify "%s"' % name)
-            self._repo.remote('origin').push()
+            try:
+                self._repo.git.add(name)
+                self._repo.commit('Modify "%s"' % name)
+                self._repo.remote('origin').push()
+            except git.GitError as err:
+                raise StorageException('Cannot push a file "%s" to git. %s' % (name, str(err)))
 
         return False
 

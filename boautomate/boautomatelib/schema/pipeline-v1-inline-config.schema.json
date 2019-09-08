@@ -3,11 +3,12 @@
 
     "type": "object",
     "properties": {
-        "schema": {"type":  "string"},
-        "title": {"type":  "string"},
+        "schema": {"type": "string"},
+        "title": {"type": "string"},
         "secret": {"type": "string"},
-        "script": {"type":  "string"},
-        "configs": {"type":  "array"},
-        "params": {"type":  "object"}
+        "supervisor_label": {"type":  "string"},
+        "script": {"type": "string"},
+        "configs": {"type": "array"},
+        "params": {"type": "object"}
     }
 }

@@ -3,7 +3,7 @@ import os
 
 from . import Filesystem, StorageSpec
 from ..exceptions import StorageException
-from ..logging import Logger
+from ..logger import Logger
 from ..resolver import Resolver
 
 

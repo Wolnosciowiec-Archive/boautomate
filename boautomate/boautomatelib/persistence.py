@@ -8,7 +8,7 @@ from sqlalchemy.engine.base import Engine
 from typing import Callable
 from datetime import datetime
 import uuid
-from .logging import Logger
+from .logger import Logger
 Base = declarative_base()
 
 
@@ -61,6 +61,7 @@ class Pipeline:
     title: str
     secret: str
     script: str
+    supervisor_label: str
     configs: list
     params: dict
     retrieve_script: Callable

@@ -1,12 +1,16 @@
+# standard bootstrap code
 import sys
+import os
+
+sys.path = [os.environ.get('BOAUTOMATE_PATH', '/opt/boautomate')] + sys.path
+# end of standard bootstrap code
+
 from time import sleep
 
 """
     Pipeline resource locking example
     =================================
 """
-
-sys.path.append('/opt/boautomate')
 
 from boautomate.boautomatelib.nodeexecutor import NodeExecutor
 from boautomate.boautomatelib.nodeexecutor.pipeline import info
