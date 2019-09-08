@@ -1,2 +1,6 @@
 *.sqlite3
 *.log
+/build
+/boautomate.egg-info
+/test/example-installation/boautomate-local/git/*
+!/test/example-installation/boautomate-local/git/.gitkeep
