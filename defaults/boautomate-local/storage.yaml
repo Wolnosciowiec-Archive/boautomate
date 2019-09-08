@@ -1,0 +1,18 @@
+example:
+    type: local
+    default: true
+    params:
+        path: /data/storage
+        readonly: false
+
+#test_gitfs:
+#    type: git
+#    default: true
+#    params:
+#        url: https://github.com/blackandred/test.git
+#        branch: master
+#        key: ''
+#        passphrase: ""
+#        chroot: ''
+#        readonly: true
+#        pull_interval: 60

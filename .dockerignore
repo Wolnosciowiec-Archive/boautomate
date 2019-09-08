@@ -1,0 +1,6 @@
+Dockerfile
+*.sqlite3
+*.log
+*.pyc
+/build
+/boautomate.egg-info

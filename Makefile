@@ -8,6 +8,20 @@ help:
 
 build_base_image: ## Build base image and tag as quay.io/riotkit/boautomate-executor-base-img
 	${SUDO} docker build . -f ./docker/base-image/Dockerfile -t quay.io/riotkit/boautomate-executor-base-img
+	${SUDO} docker tag quay.io/riotkit/boautomate-executor-base-img quay.io/riotkit/boautomate-executor-base-img:$$(./get_version.py)
+
+build_boautomate_image: ## Build docker image with a fully bootstrapped Boautomate
+	${SUDO} docker build . -f ./docker/boautomate/Dockerfile -t quay.io/riotkit/boautomate
+	${SUDO} docker tag quay.io/riotkit/boautomate quay.io/riotkit/boautomate:$$(./get_version.py)
+
+all_containers: build_base_image build_boautomate_image ## Build all containers
+
+push_all_containers: ## Push all built containers
+	${SUDO} docker push quay.io/riotkit/boautomate-executor-base-img
+	${SUDO} docker push quay.io/riotkit/boautomate
+
+	${SUDO} docker push quay.io/riotkit/boautomate-executor-base-img:$$(./get_version.py)
+	${SUDO} docker push quay.io/riotkit/boautomate:$$(./get_version.py)
 
 run_test_server: ## Run test instance for API testing
 	touch db.sqlite3

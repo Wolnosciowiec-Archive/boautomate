@@ -1,0 +1,36 @@
+
+settings:
+    selection_strategy: round-robin   # available options: random, round-robin
+
+nodes:
+    #
+    # Runs as a local script without any isolation
+    #
+    local:
+        type: native    # available options: native, docker, class name - ex. "boautomate.boautomatelib.supervisor.native.NativeRunSupervisor"
+        default: true   # should this node be used, when a pipeline runs on 'any node'?
+        labels:         # nodes could be tagged with labels, so the pipelines can specify on which types of nodes can be running
+            - default
+            - local
+            - fast
+            - trusted
+            - fast_ssd   # for example, you can classify nodes by hardware specification
+        attributes:
+            # path, where all pipelines store the temporary directories
+            workspaces_path: "/opt/boautomate-workspaces"
+
+#    #
+#    # Example docker usage via `docker run` (spawns a new image on each build)
+#    #
+#    docker:
+#        type: docker-run
+#        default: true
+#        labels:
+#            - secure
+#            - docker
+#            - untrusted
+#        attributes:
+#            # Docker daemon base url. Allows to connect to a remote machine.
+#            base_url:
+#            # Image which will be running
+#            image: quay.io/riotkit/boautomate-executor-base-img

@@ -45,3 +45,13 @@ When a new application version comes, then open a "VERSIONS.rst" on "master" git
 
     # in second console
     make run_test_pipeline
+
+**Running in Docker**
+
+To run the very basic Boautomate configuration working on SQLite3 and local filesystem, just run it with providing a minimum of storage volume.
+
+.. code:: bash
+
+    mkdir -p ./storage/configs ./storage/pipelines ./storage/scripts
+    sudo docker run -p 80:8080 -d --name boautomate -v ./storage:/data/storage quay.io/riotkit/boautomate
+
